@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#efefef",
+        primary: "#f8f8f8",
         secondary: "#333",
-        card: "#f3f3f3",
+        card: "#fbfbfb",
       },
     },
   },
