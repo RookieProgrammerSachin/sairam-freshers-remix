@@ -1,6 +1,12 @@
-import type { MetaFunction } from "@remix-run/node";
-import { Form } from "@remix-run/react";
-import { useState } from "react";
+import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
+import {
+  Form,
+  json,
+  redirect,
+  useActionData,
+  useNavigation,
+} from "@remix-run/react";
+import { wait } from "@/utils";
 import { RULES } from "@/static";
 
 export const meta: MetaFunction = () => {
@@ -13,13 +19,29 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function action({ request }: ActionFunctionArgs) {
+  const data = await request.formData();
+  data.forEach((v, k) => console.log(k, v));
+  if (data.get("register") == "123" && data.get("password") == "123") {
+    await wait(2000);
+    return json({ message: "OK" });
+  }
+  return json({ error: "Invalid credentials" });
+}
+
 export default function Index() {
-  const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(false);
+  const submitAction = useActionData<typeof action>();
+  const navigation = useNavigation();
+
+  const isButtonDisabled = navigation.state === "submitting";
 
   return (
     <main className='w-full min-h-screen grid grid-cols-[1.3fr_1.7fr] items-center justify-center'>
       <div className='flex justify-center items-center'>
-        <Form className='flex w-[22rem] flex-col gap-4 outline outline-1 outline-gray-300 rounded-lg bg-card px-4 py-12 pb-4'>
+        <Form
+          method='POST'
+          className='flex w-[22rem] flex-col gap-4 outline outline-1 outline-gray-300 rounded-lg bg-card px-4 py-12 pb-4'
+        >
           <img
             className='md:w-[200px] md:h-auto h-auto w-[250px] mb-8 mx-auto'
             src='/clg.png'
@@ -32,7 +54,7 @@ export default function Index() {
             className='px-4 py-2 rounded-md bg-white placeholder:text-sm outline outline-1 outline-gray-200 focus:outline-gray-300'
             type='text'
             inputMode='numeric'
-            pattern='[0-9]{11}'
+            pattern='[0-9]{3}'
             required
             name='register'
           />
@@ -48,6 +70,7 @@ export default function Index() {
               type='checkbox'
               name='agree'
               id='agree'
+              required
               className='w-4 h-4 text-blue-600 bg-gray-100 rounded-md focus:ring-blue-500 dark:focus:ring-blue-600 ring-offset-gray-800 focus:ring-1 border-gray-600'
             />
             <label
@@ -61,9 +84,9 @@ export default function Index() {
             type='submit'
             className={`${
               isButtonDisabled
-                ? "pointer-events-none cursor-default bg-[#99bbdd]"
-                : "bg-[#0a66c3]"
-            } mb-6 outline-none border-none rounded-full w-full text-center text-primary px-4 py-2`}
+                ? "pointer-events-none cursor-default bg-accent/50"
+                : "bg-accent"
+            } mb-6 outline-none border-none rounded-full w-full text-center text-primary px-4 py-2 grid place-content-center`}
           >
             {isButtonDisabled ? <span className='loader'></span> : `Sign In`}
           </button>

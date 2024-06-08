@@ -1,4 +1,4 @@
-export const RULES = [
+export const RULES: string[] = [
   "It is illegal to wear coats in a school.",
   "It is illegal for a comedian to laugh at their own jokes.",
   "It is illegal to go to court without a witness.",
