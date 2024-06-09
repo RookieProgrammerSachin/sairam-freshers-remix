@@ -81,7 +81,7 @@ function Layout() {
 
         {/* Page Content */}
         <div className="flex max-h-fit max-w-[80vw] flex-col rounded-md border bg-card px-8 py-12 md:w-full">
-          <h1 className="text-lg font-semibold">Hello, user!</h1>
+          <h1 className="text-2xl font-semibold">Hi, user!</h1>
           <p className="mb-6">Use the menu on the left to view updates</p>
           <Outlet />
         </div>
