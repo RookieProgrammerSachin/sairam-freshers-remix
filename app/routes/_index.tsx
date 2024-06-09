@@ -6,8 +6,9 @@ import {
   useActionData,
   useNavigation,
 } from "@remix-run/react";
-import { wait } from "@/utils";
+import { createObjectFromFormData, wait } from "@/utils";
 import { RULES } from "@/static";
+import { LoginData, validateLogin } from "@/utils/validate";
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,12 +22,13 @@ export const meta: MetaFunction = () => {
 
 export async function action({ request }: ActionFunctionArgs) {
   const data = await request.formData();
-  data.forEach((v, k) => console.log(k, v));
-  if (data.get("register") == "123" && data.get("password") == "123") {
-    await wait(2000);
-    return redirect("/home");
-  }
-  return json({ error: "Invalid credentials" });
+  const destructured = createObjectFromFormData(data) as unknown as LoginData;
+  const validation = validateLogin(destructured);
+
+  if (Object.keys(validation).length > 0) return json({ error: validation });
+
+  await wait(2000);
+  return redirect("/home");
 }
 
 export default function Index() {
@@ -49,22 +51,40 @@ export default function Index() {
             height={400}
             alt="sairam logo"
           />
-          <input
-            placeholder="Register number"
-            className="rounded-md bg-white px-4 py-2 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]{3}"
-            required
-            name="register"
-          />
-          <input
-            placeholder="Password"
-            className="rounded-md bg-white px-4 py-2 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="password"
-            required
-            name="password"
-          />
+
+          {/* Register number field */}
+          <div className="flex flex-col">
+            <input
+              placeholder="Register number"
+              className={`rounded-md bg-white px-4 py-2 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300 ${submitAction?.error?.register && !isButtonDisabled && "outline-red-400 focus:outline-red-400"}`}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{3}"
+              required
+              name="register"
+            />
+            {submitAction?.error.register && !isButtonDisabled && (
+              <p className="text-sm font-light text-red-500">
+                {submitAction?.error.register}
+              </p>
+            )}
+          </div>
+
+          {/* Password field */}
+          <div className="flex flex-col">
+            <input
+              placeholder="Password"
+              className={`rounded-md bg-white px-4 py-2 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300 ${submitAction?.error?.password && !isButtonDisabled && "outline-red-400 focus:outline-red-400"}`}
+              type="password"
+              required
+              name="password"
+            />
+            {submitAction?.error.password && !isButtonDisabled && (
+              <p className="text-sm font-light text-red-500">
+                {submitAction?.error.password}
+              </p>
+            )}
+          </div>
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -86,10 +106,7 @@ export default function Index() {
               isButtonDisabled
                 ? "pointer-events-none cursor-default bg-accent/50"
                 : "bg-accent"
-            } mb-6 grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary ${
-              submitAction?.error &&
-              "bg-red-50 font-medium text-red-500 outline outline-1 outline-red-600"
-            } `}
+            } mb-6 grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`}
           >
             {isButtonDisabled ? <span className="loader"></span> : `Sign In`}
           </button>
