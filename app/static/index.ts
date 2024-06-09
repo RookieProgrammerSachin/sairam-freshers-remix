@@ -6,3 +6,18 @@ export const RULES: string[] = [
   `It is illegal to ride a bicycle without both hands on the handlebars.`,
   `It is illegal to slide on the hood of a car.`,
 ];
+
+export const NAV_LINKS: { link: string, label: string }[] = [
+  {
+    label: "Fresher's Guide",
+    link: "/guide",
+  },
+  {
+    label: "Orientation Schedule",
+    link: "/orientation",
+  },
+  {
+    label: "Provisional Admission Letter",
+    link: "/admission",
+  },
+];
