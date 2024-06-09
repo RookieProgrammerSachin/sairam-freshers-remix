@@ -34,7 +34,6 @@ export default function Index() {
   const navigation = useNavigation();
 
   const isButtonDisabled = navigation.state === "submitting";
-  console.log("🚀 ~ Index ~ submitAction:", submitAction);
 
   return (
     <main className="grid min-h-screen w-full grid-cols-[1.3fr_1.7fr] items-center justify-center">

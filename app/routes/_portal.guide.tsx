@@ -1,9 +1,15 @@
-import React from 'react'
+import { ErrorBoundary } from "@/root";
+import { MetaFunction } from "@remix-run/react";
 
+export const meta: MetaFunction = () => {
+  return [{ title: "Freshers portal - Guide | Sairam Freshers" }];
+};
 function Page() {
-  return (
-    <div>Guide</div>
-  )
+  throw new Error("No!");
+
+  return <div>Guide</div>;
 }
 
-export default Page
+export default Page;
+
+export { ErrorBoundary };

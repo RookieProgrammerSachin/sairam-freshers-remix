@@ -27,56 +27,64 @@ function Layout() {
         </h1>
 
         {/* Menu */}
-        <Menu>
-          <MenuButton className="flex items-center justify-center gap-2 rounded-full px-4 py-2 text-base outline outline-1 outline-gray-200 data-[open]:bg-white/80">
-            <LuUser2 />
-            My account
-            <MdKeyboardArrowDown />
-          </MenuButton>
-          <Transition
-            enter="transition ease-out duration-75"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="transition ease-in duration-100"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <MenuItems
-              anchor="bottom"
-              className={
-                "z-50 mt-2 w-[20%] rounded-md bg-white py-1 outline outline-1 outline-gray-300"
-              }
+        <div className="relative flex max-w-72 justify-center">
+          <Menu>
+            <MenuButton className="flex items-center justify-center gap-2 rounded-full px-4 py-2 text-base outline outline-1 outline-gray-200 transition-[outline] data-[open]:bg-white/80 data-[open]:outline-gray-400">
+              <LuUser2 />
+              My account
+              <MdKeyboardArrowDown />
+            </MenuButton>
+            <Transition
+              enter="transition ease-out duration-75"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="transition ease-in duration-100"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
             >
-              {MENU_LINKS.map((link, i) => (
-                <MenuItem key={i}>
+              <MenuItems
+                anchor="bottom"
+                className={
+                  "z-50 mt-2 w-36 rounded-md bg-white py-1 outline outline-1 outline-gray-300"
+                }
+              >
+                {MENU_LINKS.map((link, i) => (
+                  <MenuItem key={i}>
+                    <a
+                      className="flex items-center justify-center gap-2 py-1 text-sm data-[focus]:bg-gray-50"
+                      href={link.link}
+                    >
+                      <link.icon size={18} />
+                      {link.label}
+                    </a>
+                  </MenuItem>
+                ))}
+                <MenuSeparator>
+                  <div className="my-1 h-px bg-black/10" />
+                </MenuSeparator>
+                <MenuItem>
                   <a
-                    className="flex items-center justify-center gap-2 py-1 data-[focus]:bg-gray-50"
-                    href={link.link}
+                    className="flex items-center justify-center gap-2 py-1 text-sm data-[focus]:bg-gray-50"
+                    href="/logout"
                   >
-                    <link.icon size={18} />
-                    {link.label}
+                    <CiLogout />
+                    Logout
                   </a>
                 </MenuItem>
-              ))}
-              <MenuSeparator>
-                <div className="my-1 h-px bg-black/10" />
-              </MenuSeparator>
-              <MenuItem>
-                <a
-                  className="flex items-center justify-center gap-2 py-1 data-[focus]:bg-gray-50"
-                  href="/logout"
-                >
-                  <CiLogout />
-                  Logout
-                </a>
-              </MenuItem>
-            </MenuItems>
-          </Transition>
-        </Menu>
+              </MenuItems>
+            </Transition>
+          </Menu>
+        </div>
       </nav>
-      <div className="main-container grid w-full max-w-screen-2xl grid-rows-[0.7fr_2fr] gap-8 self-center px-12 py-10 md:grid-cols-[0.6fr_2fr] md:grid-rows-none">
+      <div className="main-container grid w-full grid-rows-[0.7fr_2fr] gap-8 self-center px-12 py-10 md:flex">
         <Nav />
-        <Outlet />
+
+        {/* Page Content */}
+        <div className="flex max-h-fit max-w-[80vw] flex-col rounded-md border bg-card px-8 py-12 md:w-full">
+          <h1 className="text-lg font-semibold">Hello, user!</h1>
+          <p className="mb-6">Use the menu on the left to view updates</p>
+          <Outlet />
+        </div>
       </div>
     </>
   );
