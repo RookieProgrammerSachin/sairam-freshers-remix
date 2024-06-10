@@ -8,6 +8,8 @@ import {
 import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "@/tailwind.css?url";
 import { ErrorCatch } from "./components/ui/error-boundary";
+import { MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -23,7 +25,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="grid place-items-center bg-primary">
-        {children}
+        <MantineProvider>{children}</MantineProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
