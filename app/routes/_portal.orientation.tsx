@@ -3,10 +3,18 @@ import { Link, MetaFunction } from "@remix-run/react";
 import { CgLink } from "react-icons/cg";
 import { CiCalendarDate } from "react-icons/ci";
 import { MdOutlineArrowOutward } from "react-icons/md";
+import { ErrorBoundary } from "@/root";
+import { requireAuthCookie } from "@/utils/auth";
+import { LoaderFunctionArgs } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Freshers portal - Orientation | Sairam Freshers" }];
 };
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await requireAuthCookie(request);
+  return user;
+}
 
 function Page() {
   return (
@@ -46,3 +54,5 @@ function Page() {
 }
 
 export default Page;
+
+export { ErrorBoundary };

@@ -36,5 +36,5 @@ export default function App() {
 }
 
 export function ErrorBoundary() {
-  return <ErrorCatch />
+  return <ErrorCatch />;
 }

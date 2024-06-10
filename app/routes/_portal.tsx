@@ -1,5 +1,5 @@
 import { currentYear } from "@/utils";
-import { Outlet } from "@remix-run/react";
+import { Outlet, useLoaderData } from "@remix-run/react";
 import {
   Menu,
   MenuButton,
@@ -13,8 +13,18 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 import { MENU_LINKS } from "@/static/portal.home";
 import { CiLogout } from "react-icons/ci";
 import Nav from "@/components/Nav";
+import { ErrorBoundary } from "@/root";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { requireAuthCookie } from "@/utils/auth";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await requireAuthCookie(request);
+  return user;
+}
 
 function Layout() {
+  const userData = useLoaderData<typeof loader>();
+
   return (
     <>
       <nav className="nav border-silver z-10 grid w-full grid-rows-3 items-center justify-center gap-4 border px-12 py-2 md:grid-cols-[0.7fr_1fr_0.5fr] md:grid-rows-none md:gap-8">
@@ -81,7 +91,7 @@ function Layout() {
 
         {/* Page Content */}
         <div className="flex max-h-fit max-w-[80vw] flex-col rounded-md border bg-card px-8 py-12 md:w-full">
-          <h1 className="text-2xl font-semibold">Hi, user!</h1>
+          <h1 className="text-2xl font-semibold">Hi, {userData.name}!</h1>
           <p className="mb-6">Use the menu on the left to view updates</p>
           <Outlet />
         </div>
@@ -91,3 +101,5 @@ function Layout() {
 }
 
 export default Layout;
+
+export { ErrorBoundary };

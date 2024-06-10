@@ -1,4 +1,8 @@
-import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from "@remix-run/node";
 import {
   Form,
   json,
@@ -9,6 +13,7 @@ import {
 import { createObjectFromFormData, wait } from "@/utils";
 import { RULES } from "@/static";
 import { LoginData, validateLogin } from "@/utils/validate";
+import { checkCookieAndLogin, login, loginCookie } from "@/utils/auth";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,15 +25,28 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  return await checkCookieAndLogin(request);
+}
+
 export async function action({ request }: ActionFunctionArgs) {
   const data = await request.formData();
   const destructured = createObjectFromFormData(data) as unknown as LoginData;
   const validation = validateLogin(destructured);
 
-  if (Object.keys(validation).length > 0) return json({ error: validation });
+  if (Object.keys(validation).length > 0)
+    return json({ error: validation }, 400);
+  const loginData = login(
+    String(destructured.register),
+    String(destructured.password),
+  );
 
-  await wait(2000);
-  return redirect("/home");
+  await wait(1000);
+  return redirect("/home", {
+    headers: {
+      "Set-Cookie": await loginCookie.serialize(loginData),
+    },
+  });
 }
 
 export default function Index() {
