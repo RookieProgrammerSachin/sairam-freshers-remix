@@ -1,5 +1,8 @@
-import { LoaderFunctionArgs, createCookie, redirect } from "@remix-run/node";
+import { createCookie, redirect } from "@remix-run/node";
 
+/** Maybe import dotenv/config here? I am not sure.. remix dev loads env vars into loaders and such, but not really into other .js or .ts
+ * files
+ */
 const secret = process.env.LOGIN_SECRET;
 
 if (!secret)
