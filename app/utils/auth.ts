@@ -1,4 +1,8 @@
+import { db } from "@/db";
+import { userTable } from "@/db/schema";
 import { createCookie, redirect } from "@remix-run/node";
+import { and, eq } from "drizzle-orm";
+import crypto from "node:crypto";
 
 /** Maybe import dotenv/config here? I am not sure.. remix dev loads env vars into loaders and such, but not really into other .js or .ts
  * files
@@ -11,7 +15,7 @@ if (!secret)
 export type ValidCookieType = {
   id?: string;
   name?: string;
-};
+} | null;
 
 /** Cookie creation function */
 export const loginCookie = createCookie("__token", {
@@ -24,10 +28,26 @@ export const loginCookie = createCookie("__token", {
 });
 
 /** Login function, checks DB and return CookieShape */
-export const login = (register: string, password: string): ValidCookieType => {
-  if (!password) "meh";
+export const login = async (
+  register: string,
+  password: string,
+): Promise<ValidCookieType> => {
+  const userData = await db
+    .select()
+    .from(userTable)
+    .where(
+      and(
+        eq(userTable.applicationNo, register),
+        eq(
+          userTable.password,
+          crypto.createHash("sha256").update(password).digest("hex"),
+        ),
+      ),
+    );
 
-  return { id: register, name: "Dummy" };
+  if (userData.length !== 1) return null;
+
+  return { id: register, name: userData[0].name };
 };
 
 /** Validate cookie's shape and return cookie or false */
@@ -35,7 +55,7 @@ export const validateCookie = (
   cookie: ValidCookieType,
 ): false | ValidCookieType => {
   if (!cookie) return false;
-  if (cookie.id === "123") return cookie;
+  if (cookie.id?.length === 11) return cookie; // TODO: make a better cookie validation logic
   return false;
 };
 

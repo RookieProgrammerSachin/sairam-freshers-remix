@@ -1,4 +1,4 @@
-type LoginErrorObjectType = {
+export type LoginErrorObjectType = {
   general?: string;
   register?: string;
   password?: string;
@@ -17,11 +17,11 @@ export const validateLogin = (data: LoginData) => {
     errors.general = "Data parameters not present!";
   }
 
-  if (String(data.register) !== "123") {
+  if (String(data.register).length !== 11) {
     errors.register = "Invalid register number";
   }
 
-  if (String(data.password)?.length !== 3) {
+  if (!data.password) {
     errors.password = "Invalid password";
   }
 

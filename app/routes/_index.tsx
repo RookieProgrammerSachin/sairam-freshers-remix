@@ -12,8 +12,13 @@ import {
 } from "@remix-run/react";
 import { createObjectFromFormData, wait } from "@/utils";
 import { RULES } from "@/static";
-import { LoginData, validateLogin } from "@/utils/validate";
+import {
+  LoginData,
+  LoginErrorObjectType,
+  validateLogin,
+} from "@/utils/validate";
 import { checkCookieAndLogin, login, loginCookie } from "@/utils/auth";
+import { getUserDataFromRegisterNo } from "@/db/queries";
 
 export const meta: MetaFunction = () => {
   return [
@@ -36,12 +41,23 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (Object.keys(validation).length > 0)
     return json({ error: validation }, 400);
-  const loginData = login(
+
+  const loginData = await login(
     String(destructured.register),
     String(destructured.password),
   );
 
-  await wait(1000);
+  console.log("🚀 ~ action ~ loginData:", loginData);
+  if (!loginData)
+    return json(
+      {
+        error: {
+          general: "Invalid credentials!",
+        } as LoginErrorObjectType,
+      },
+      400,
+    );
+
   return redirect("/home", {
     headers: {
       "Set-Cookie": await loginCookie.serialize(loginData),
@@ -54,6 +70,11 @@ export default function Index() {
   const navigation = useNavigation();
 
   const isButtonDisabled = navigation.state === "submitting";
+
+  if (submitAction?.error.general) {
+    alert(submitAction.error.general); // change this line to blast toast soon
+    submitAction.error.general = undefined;
+  }
 
   return (
     <main className="grid min-h-screen w-full grid-cols-[1.3fr_1.7fr] items-center justify-center">
@@ -77,7 +98,7 @@ export default function Index() {
               className={`rounded-md bg-white px-4 py-2 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300 ${submitAction?.error?.register && !isButtonDisabled && "outline-red-400 focus:outline-red-400"}`}
               type="text"
               inputMode="numeric"
-              pattern="[0-9]{3}"
+              pattern="[0-9]{11}"
               required
               name="register"
             />
