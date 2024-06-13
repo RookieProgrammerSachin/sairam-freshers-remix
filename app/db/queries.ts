@@ -1,5 +1,6 @@
 import { db } from ".";
 import { userTable } from "./schema";
+import crypto from "node:crypto";
 
 async function insertSample() {
   const data = await db
@@ -16,4 +17,3 @@ async function insertSample() {
   console.log("🚀 ~ data ~ data:", data);
 }
 
-await insertSample();

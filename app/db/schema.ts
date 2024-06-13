@@ -7,7 +7,7 @@ export const userTable = pgTable("users", {
   applicationNo: varchar("register").notNull().unique(),
   password: varchar("password").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  emailId: varchar("email").notNull().unique(),
-  mobile: varchar("mobile").notNull().unique(),
+  emailId: varchar("email").notNull(),
+  mobile: varchar("mobile").notNull(),
   role: roleEnum("role").notNull(),
 });

@@ -8,6 +8,13 @@
       "when": 1718189057770,
       "tag": "0000_faithful_inhumans",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1718247137722,
+      "tag": "0001_kind_red_ghost",
+      "breakpoints": true
     }
   ]
 }
