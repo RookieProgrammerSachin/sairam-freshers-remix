@@ -10,6 +10,8 @@ import stylesheet from "@/tailwind.css?url";
 import { ErrorCatch } from "./components/ui/error-boundary";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
+import { Slide, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -26,6 +28,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="grid place-items-center bg-primary">
         <MantineProvider>{children}</MantineProvider>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          transition={Slide}
+        />
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -19,6 +19,7 @@ import {
 } from "@/utils/validate";
 import { checkCookieAndLogin, login, loginCookie } from "@/utils/auth";
 import { getUserDataFromRegisterNo } from "@/db/queries";
+import { toast } from "react-toastify";
 
 export const meta: MetaFunction = () => {
   return [
@@ -72,7 +73,7 @@ export default function Index() {
   const isButtonDisabled = navigation.state === "submitting";
 
   if (submitAction?.error.general) {
-    alert(submitAction.error.general); // change this line to blast toast soon
+    toast.error(submitAction.error.general);
     submitAction.error.general = undefined;
   }
 
