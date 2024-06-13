@@ -5,10 +5,11 @@ async function insertSample() {
   const data = await db
     .insert(userTable)
     .values({
-      firstName: "2sachin",
-      lastName: "Bruh",
+      name: "2sachin",
       password: "TF?",
-      registerNo: "102349",
+      applicationNo: "102349",
+      emailId: "asda2@aFSDASF",
+      mobile: "942822342",
       role: "ROLE_STUDENT",
     })
     .returning();
