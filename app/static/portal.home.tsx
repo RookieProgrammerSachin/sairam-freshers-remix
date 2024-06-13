@@ -9,8 +9,8 @@ type MenuItem = {
 
 export const MENU_LINKS: MenuItem[] = [
   {
-    link: "/settings",
-    label: "Settings",
+    link: "/profile",
+    label: "profile",
     icon: CiSettings,
   },
 ];
