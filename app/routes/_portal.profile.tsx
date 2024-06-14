@@ -6,7 +6,7 @@ import { COMMUNITIES } from "@/static/portal.profile";
 import Button from "@/components/ui/button";
 import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export type PersonalDetailsSubmitType = {
   message?: string;
@@ -36,11 +36,33 @@ export async function action({ request }: ActionFunctionArgs) {
 function Page() {
   const submitDataAction = useActionData<typeof action>();
   const [fillDummy, setFillDummy] = useState(false);
+  const currentAddressContainer = useRef<HTMLDivElement>(null);
+  const permanentAddressContainer = useRef<HTMLDivElement>(null);
 
   if (submitDataAction?.message) {
     toast.success(submitDataAction.message);
-    submitDataAction.message = undefined; // type pannu
+    submitDataAction.message = undefined;
   }
+
+  const fillPermanentAddress = (action: boolean) => {
+    const currentInputFields =
+      currentAddressContainer.current?.querySelectorAll("input");
+    const permanentInputFields =
+      permanentAddressContainer.current?.querySelectorAll("input");
+
+    /** additionally check if i forgot to change input fields count in both of them in case fields changed as implied by 3rd or check below */
+    if (
+      !currentInputFields ||
+      !permanentInputFields ||
+      currentInputFields.length !== permanentInputFields.length
+    )
+      return;
+
+    // Since current address fields and permanent address fields are in same order, imma just loop through them and fill value with index
+    for (let i = 0; i < permanentInputFields.length; i++) {
+      permanentInputFields[i].value = action ? currentInputFields[i].value : "";
+    }
+  };
 
   return (
     <Form
@@ -184,7 +206,7 @@ function Page() {
 
       {/* Current residential address */}
       <h3 className="text-lg font-semibold">Current Residential Address</h3>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2" ref={currentAddressContainer}>
         <div className="flex flex-col gap-1">
           <label htmlFor="currentAddress" className="text-sm font-normal">
             Door No. / Plot No. / Street Name{" "}
@@ -320,8 +342,7 @@ function Page() {
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="currentLandLine" className="text-sm font-normal">
-            Phone No. (LandLine){" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
+            Phone No. (LandLine)
           </label>
           <input
             id="currentLandLine"
@@ -367,8 +388,28 @@ function Page() {
       </div>
 
       {/* Permanent address */}
-      <h3 className="text-lg font-semibold">Permanent Residential Address</h3>
-      <div className="grid gap-4 md:grid-cols-2">
+      <h3 className="flex items-center gap-4 text-lg font-semibold">
+        Permanent Residential Address{" "}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="sameAddress"
+            id="sameAddress"
+            className="h-3 w-3 rounded-full border-gray-600 bg-gray-100 text-blue-600 ring-offset-gray-800 focus:ring-1 focus:ring-blue-500"
+            onChange={(e) => fillPermanentAddress(e.currentTarget.checked)}
+          />
+          <label
+            htmlFor="sameAddress"
+            className="ms-2 text-sm font-normal text-black/90"
+          >
+            Same as current Address
+          </label>
+        </div>{" "}
+      </h3>
+      <div
+        className="grid gap-4 md:grid-cols-2"
+        ref={permanentAddressContainer}
+      >
         <div className="flex flex-col gap-1">
           <label htmlFor="permanentAddress" className="text-sm font-normal">
             Door No. / Plot No. / Street Name{" "}
@@ -900,14 +941,12 @@ function Page() {
           {/* Father Emp ID */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherEmpId" className="text-sm font-normal">
-              EMP.ID (If employed in SEC/SIT){" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
+              EMP.ID (If employed in SEC/SIT)
             </label>
             <input
               id="fatherEmpId"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
-              required
               name="fatherEmpId"
               placeholder="Father's EMP.ID"
               defaultValue={fillDummy ? "123456" : undefined}
