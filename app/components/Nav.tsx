@@ -5,7 +5,7 @@ import { RxCaretRight } from "react-icons/rx";
 
 function Nav() {
   return (
-    <div className="flex h-fit flex-col gap-4 rounded-md border bg-card px-8 py-12 md:w-full md:max-w-[20rem]">
+    <div className="flex h-fit flex-col gap-4 rounded-md border bg-card px-6 py-6 md:w-full md:max-w-[20rem] md:px-8 md:py-12">
       <NavLink to="/home" className={"flex items-center gap-1"}>
         <GrHomeRounded size={20} />
         <RxCaretRight size={24} />

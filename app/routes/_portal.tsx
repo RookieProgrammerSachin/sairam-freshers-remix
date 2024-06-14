@@ -27,19 +27,19 @@ function Layout() {
 
   return (
     <>
-      <nav className="nav border-silver z-10 grid w-full grid-rows-3 items-center justify-center gap-4 border px-12 py-2 md:grid-cols-[0.7fr_1fr_0.5fr] md:grid-rows-none md:gap-8">
+      <nav className="nav border-silver z-10 grid w-full grid-rows-3 place-items-center items-center justify-center gap-4 border px-6 py-2 md:grid-cols-[0.7fr_1fr_0.5fr] md:grid-rows-none md:gap-8 md:px-12">
         {/* College logo */}
         <img src="/clg.png" alt="Sairam Freshers" className="w-[12rem]" />
 
         {/* Title */}
-        <h1 className="text-2xl font-semibold">
+        <h1 className="w-fit text-2xl font-semibold">
           Sairam Freshers Portal ({currentYear}-{currentYear + 1})
         </h1>
 
         {/* Menu */}
-        <div className="relative flex max-w-72 justify-center">
+        <div className="relative flex w-full justify-center md:w-[unset] md:max-w-72">
           <Menu>
-            <MenuButton className="flex items-center justify-center gap-2 rounded-full px-4 py-2 text-base outline outline-1 outline-gray-200 transition-[outline] data-[open]:bg-white/80 data-[open]:outline-gray-400">
+            <MenuButton className="flex w-full items-center justify-center gap-2 rounded-full px-4 py-2 text-base outline outline-1 outline-gray-200 transition-[outline] data-[open]:bg-white/80 data-[open]:outline-gray-400 md:w-[unset]">
               <LuUser2 />
               My account
               <MdKeyboardArrowDown />
@@ -86,11 +86,11 @@ function Layout() {
           </Menu>
         </div>
       </nav>
-      <div className="main-container grid w-full grid-rows-[0.7fr_2fr] gap-8 self-center px-12 py-10 md:flex">
+      <div className="main-container grid w-full gap-8 self-center px-6 py-4 md:flex md:grid-rows-[0.7fr_2fr] md:px-12 md:py-10">
         <Nav />
 
         {/* Page Content */}
-        <div className="flex max-h-fit max-w-[80vw] flex-col rounded-md border bg-card px-8 py-12 md:w-full">
+        <div className="flex max-h-fit flex-col rounded-md border bg-card px-4 py-8 md:w-full md:max-w-[80vw] md:px-8 md:py-12">
           <h1 className="text-2xl font-semibold">Hi, {userData.name}!</h1>
           <p className="mb-6">Use the menu on the left to view updates</p>
           <Outlet />

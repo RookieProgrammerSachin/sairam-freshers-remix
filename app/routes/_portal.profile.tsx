@@ -43,7 +43,11 @@ function Page() {
   }
 
   return (
-    <Form className="space-y-5" method="POST">
+    <Form
+      className="space-y-8 md:space-y-5"
+      method="POST"
+      onChange={(e) => console.log(" triggered")}
+    >
       {/* Personal details */}
       <h3 className="text-lg font-semibold">Personal Details</h3>
       <button onClick={() => setFillDummy(!fillDummy)}>
@@ -801,7 +805,7 @@ function Page() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Father details */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Father Details</h3>
@@ -1067,7 +1071,7 @@ function Page() {
               required
               name="fatherPincode"
               placeholder="Father's State Pincode"
-              defaultValue={"600023"}
+              defaultValue={fillDummy ? "600023" : undefined}
             />
           </div>
         </div>

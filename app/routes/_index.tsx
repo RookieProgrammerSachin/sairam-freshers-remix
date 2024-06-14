@@ -10,7 +10,7 @@ import {
   useActionData,
   useNavigation,
 } from "@remix-run/react";
-import { createObjectFromFormData, wait } from "@/utils";
+import { createObjectFromFormData } from "@/utils";
 import { RULES } from "@/static";
 import {
   LoginData,
@@ -18,7 +18,6 @@ import {
   validateLogin,
 } from "@/utils/validate";
 import { checkCookieAndLogin, login, loginCookie } from "@/utils/auth";
-import { getUserDataFromRegisterNo } from "@/db/queries";
 import { toast } from "react-toastify";
 
 export const meta: MetaFunction = () => {
