@@ -1,8 +1,16 @@
-import { MetaFunction } from "@remix-run/react";
+import { Form, MetaFunction, useActionData } from "@remix-run/react";
 import { ErrorBoundary } from "@/root";
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { requireAuthCookie } from "@/utils/auth";
 import { COMMUNITIES } from "@/static/portal.profile";
+import Button from "@/components/ui/button";
+import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
+import { toast } from "react-toastify";
+import { useState } from "react";
+
+export type PersonalDetailsSubmitType = {
+  message?: string;
+};
 
 export const meta: MetaFunction = () => {
   return [{ title: "Freshers portal - Settings | Sairam Freshers" }];
@@ -13,15 +21,34 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return user;
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireAuthCookie(request);
+  const data = await request.formData();
+  const dataObject = createObjectFromFormData(data);
+  console.log("🚀 ~ action ~ dataObject:", dataObject);
+  return json({ message: "Okay!" }) as PersonalDetailsSubmitType;
+}
+
 /** For now let all fields be in the same page
  * later down the line change it to span across multiple pages
  */
 
 function Page() {
+  const submitDataAction = useActionData<typeof action>();
+  const [fillDummy, setFillDummy] = useState(false);
+
+  if (submitDataAction?.message) {
+    toast.success(submitDataAction.message);
+    submitDataAction.message = undefined; // type pannu
+  }
+
   return (
-    <div className="space-y-5">
+    <Form className="space-y-5" method="POST">
       {/* Personal details */}
       <h3 className="text-lg font-semibold">Personal Details</h3>
+      <button onClick={() => setFillDummy(!fillDummy)}>
+        Fill dummy details
+      </button>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-1">
           <label htmlFor="name" className="text-sm font-normal">
@@ -34,6 +61,8 @@ function Page() {
             type="text"
             required
             name="name"
+            defaultValue={fillDummy ? "Filler name" : undefined}
+            autoComplete="true"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -48,6 +77,7 @@ function Page() {
             type="date"
             required
             name="dob"
+            defaultValue={fillDummy ? "2006-01-01" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -62,6 +92,7 @@ function Page() {
             type="text"
             required
             name="motherTongue"
+            defaultValue={fillDummy ? "Some mother tongue" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -76,6 +107,7 @@ function Page() {
             type="text"
             required
             name="bloodGroup"
+            defaultValue={fillDummy ? "O+" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -90,6 +122,7 @@ function Page() {
             type="text"
             required
             name="nationality"
+            defaultValue={fillDummy ? "Indian" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -104,6 +137,7 @@ function Page() {
             type="text"
             required
             name="religion"
+            defaultValue={fillDummy ? "Modism" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -112,7 +146,7 @@ function Page() {
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <select
-            defaultValue={"select"}
+            defaultValue={fillDummy ? "BC" : "select"}
             id="community"
             className="rounded-md bg-white px-3 py-1.5 text-sm outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
@@ -132,14 +166,14 @@ function Page() {
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <select
-            defaultValue={"no"}
+            defaultValue={fillDummy ? "yes" : "no"}
             id="hostelRequired"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             required
             name="hostelRequired"
           >
             <option value="yes">Yes</option>
-            <option value="No">No</option>
+            <option value="no">No</option>
           </select>
         </div>
       </div>
@@ -159,6 +193,7 @@ function Page() {
             type="text"
             required
             name="currentAddress"
+            defaultValue={fillDummy ? "123, Some Street" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -173,6 +208,7 @@ function Page() {
             type="text"
             required
             name="currentArea"
+            defaultValue={fillDummy ? "Tenyampet" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -187,6 +223,7 @@ function Page() {
             type="text"
             required
             name="currentCity"
+            defaultValue={fillDummy ? "Chennai" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -199,8 +236,11 @@ function Page() {
             placeholder="Pincode / Zipcode"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
             required
             name="currentPincode"
+            defaultValue={fillDummy ? "600123" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -212,6 +252,7 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="currentState"
+            defaultValue={fillDummy ? "Tamil Nadu" : "select"}
           >
             <option value="select" className="text-sm">
               Select State
@@ -270,6 +311,7 @@ function Page() {
             type="text"
             required
             name="currentCountry"
+            defaultValue={fillDummy ? "India" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -282,8 +324,8 @@ function Page() {
             placeholder="Phone No. (LandLine)"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
-            required
             name="currentLandLine"
+            defaultValue={fillDummy ? "0441234567" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -296,8 +338,11 @@ function Page() {
             placeholder="Mobile Number"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
+            inputMode="numeric"
+            pattern="[6-9]\d{9}"
             required
             name="currentMobile"
+            defaultValue={fillDummy ? "9123456789" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -312,6 +357,7 @@ function Page() {
             type="email"
             required
             name="currentEmail"
+            defaultValue={fillDummy ? "example@example.com" : undefined}
           />
         </div>
       </div>
@@ -331,6 +377,7 @@ function Page() {
             type="text"
             required
             name="permanentAddress"
+            defaultValue={fillDummy ? "no.8, 10th street" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -345,6 +392,7 @@ function Page() {
             type="text"
             required
             name="permanentArea"
+            defaultValue={fillDummy ? "Downtown" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -359,6 +407,7 @@ function Page() {
             type="text"
             required
             name="permanentCity"
+            defaultValue={fillDummy ? "Springfield" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -371,8 +420,11 @@ function Page() {
             placeholder="Pincode / Zipcode"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
             required
             name="permanentPincode"
+            defaultValue={fillDummy ? "650156" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -384,6 +436,7 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="permanentState"
+            defaultValue={fillDummy ? "Tamil Nadu" : "select"}
           >
             <option value="select" className="text-sm">
               Select State
@@ -442,6 +495,7 @@ function Page() {
             type="text"
             required
             name="permanentCountry"
+            defaultValue={fillDummy ? "India" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -454,8 +508,8 @@ function Page() {
             placeholder="Phone No. (LandLine)"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
-            required
             name="permanentLandLine"
+            defaultValue={fillDummy ? "04412345678" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -470,6 +524,7 @@ function Page() {
             type="text"
             required
             name="permanentMobile"
+            defaultValue={fillDummy ? "9876543210" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -484,6 +539,7 @@ function Page() {
             type="email"
             required
             name="permanentEmail"
+            defaultValue={fillDummy ? "example1@example.com" : undefined}
           />
         </div>
       </div>
@@ -503,20 +559,22 @@ function Page() {
             type="text"
             required
             name="appliedDegree"
+            defaultValue={fillDummy ? "B.Sc Computer Science" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="lastQualifying" className="text-sm font-normal">
-            Last Qualiyfing{" "}
+            Last Qualifying{" "}
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <input
             id="lastQualifying"
-            placeholder="Last Qualiyfing"
+            placeholder="Last Qualifying"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
             required
             name="lastQualifying"
+            defaultValue={fillDummy ? "Higher Secondary" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -531,6 +589,7 @@ function Page() {
             type="text"
             required
             name="schoolName"
+            defaultValue={fillDummy ? "ABC High School" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -544,6 +603,7 @@ function Page() {
             type="text"
             required
             name="schoolBranch"
+            defaultValue={fillDummy ? "Science" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -558,6 +618,7 @@ function Page() {
             type="text"
             required
             name="boardName"
+            defaultValue={fillDummy ? "State Board" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -572,6 +633,7 @@ function Page() {
             type="text"
             required
             name="langMedium"
+            defaultValue={fillDummy ? "English" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -586,20 +648,22 @@ function Page() {
             type="text"
             required
             name="regNo"
+            defaultValue={fillDummy ? "123456789" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="classObtained" className="text-sm font-normal">
-            Class Obtained{" "}
+          <label htmlFor="gradePercentage" className="text-sm font-normal">
+            Percentage Obtained{" "}
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <input
-            id="classObtained"
-            placeholder="Class Obtained"
+            id="gradePercentage"
+            placeholder="Aggregate in %"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
             required
-            name="classObtained"
+            name="gradePercentage"
+            defaultValue={fillDummy ? "93.33" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -611,9 +675,12 @@ function Page() {
             id="dateOfPassing"
             placeholder="Month & Year of Passing"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
+            type="date"
             required
             name="dateOfPassing"
+            defaultValue={
+              fillDummy ? dateTo_YYYY_MM_DD(new Date("2019-05-24")) : undefined
+            }
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -625,9 +692,10 @@ function Page() {
             id="schoolAddress"
             placeholder="School Address"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
+            type="text"
             required
             name="schoolAddress"
+            defaultValue={fillDummy ? "123, Main Street" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -638,9 +706,10 @@ function Page() {
             id="schoolCity"
             placeholder="City"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
+            type="text"
             required
             name="schoolCity"
+            defaultValue={fillDummy ? "Chennai" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -652,9 +721,12 @@ function Page() {
             id="schoolPincode"
             placeholder="Pincode"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
             required
             name="schoolPincode"
+            defaultValue={fillDummy ? "600064" : undefined}
           />
         </div>
       </div>
@@ -674,6 +746,7 @@ function Page() {
             type="text"
             required
             name="noOfBrothers"
+            defaultValue={fillDummy ? "2" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -688,6 +761,7 @@ function Page() {
             type="text"
             required
             name="noOfSisters"
+            defaultValue={fillDummy ? "1" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -702,6 +776,7 @@ function Page() {
             type="text"
             required
             name="siblingStudyingCount"
+            defaultValue={fillDummy ? "1" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -719,117 +794,9 @@ function Page() {
             type="text"
             required
             name="siblingStudyingDetails"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="boardName" className="text-sm font-normal">
-            Board / University{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="boardName"
-            placeholder="Board / University"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
-            required
-            name="boardName"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="langMedium" className="text-sm font-normal">
-            Language Medium{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="langMedium"
-            placeholder="Language Medium"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
-            required
-            name="langMedium"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="regNo" className="text-sm font-normal">
-            Reg.No./Roll No.{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="regNo"
-            placeholder="Reg.No./Roll No."
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
-            required
-            name="regNo"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="classObtained" className="text-sm font-normal">
-            Class Obtained{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="classObtained"
-            placeholder="Class Obtained"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
-            required
-            name="classObtained"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="dateOfPassing" className="text-sm font-normal">
-            Month & Year of Passing{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="dateOfPassing"
-            placeholder="Month & Year of Passing"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
-            required
-            name="dateOfPassing"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="schoolAddress" className="text-sm font-normal">
-            School Address{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="schoolAddress"
-            placeholder="School Address"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
-            required
-            name="schoolAddress"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="schoolCity" className="text-sm font-normal">
-            City <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="schoolCity"
-            placeholder="City"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
-            required
-            name="schoolCity"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="schoolPincode" className="text-sm font-normal">
-            Pincode{" "}
-            <span className="text-sm font-semibold text-red-500">*</span>
-          </label>
-          <input
-            id="schoolPincode"
-            placeholder="Pincode"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="email"
-            required
-            name="schoolPincode"
+            defaultValue={
+              fillDummy ? "B.Sc Computer Science, Second Year" : undefined
+            }
           />
         </div>
       </div>
@@ -838,6 +805,8 @@ function Page() {
         {/* Father details */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Father Details</h3>
+
+          {/* Father Name */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherName" className="text-sm font-normal">
               Name <span className="text-sm font-semibold text-red-500">*</span>
@@ -848,8 +817,12 @@ function Page() {
               type="text"
               required
               name="fatherName"
+              placeholder="Father's Name"
+              defaultValue={fillDummy ? "John Doe" : undefined}
             />
           </div>
+
+          {/* Father Qualification */}
           <div className="flex flex-col gap-2">
             <label
               htmlFor="fatherQualification"
@@ -864,8 +837,12 @@ function Page() {
               type="text"
               required
               name="fatherQualification"
+              placeholder="Father's Qualification"
+              defaultValue={fillDummy ? "Bachelor's Degree" : undefined}
             />
           </div>
+
+          {/* Father Occupation */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherOccupation" className="text-sm font-normal">
               Occupation{" "}
@@ -877,8 +854,12 @@ function Page() {
               type="text"
               required
               name="fatherOccupation"
+              placeholder="Father's Occupation"
+              defaultValue={fillDummy ? "Engineer" : undefined}
             />
           </div>
+
+          {/* Father Organization */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherOrganization" className="text-sm font-normal">
               Organization{" "}
@@ -890,8 +871,12 @@ function Page() {
               type="text"
               required
               name="fatherOrganization"
+              placeholder="Father's Organization"
+              defaultValue={fillDummy ? "ABC Corporation" : undefined}
             />
           </div>
+
+          {/* Father Designation */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherDesignation" className="text-sm font-normal">
               Designation{" "}
@@ -903,8 +888,12 @@ function Page() {
               type="text"
               required
               name="fatherDesignation"
+              placeholder="Father's Designation"
+              defaultValue={fillDummy ? "Senior Engineer" : undefined}
             />
           </div>
+
+          {/* Father Emp ID */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherEmpId" className="text-sm font-normal">
               EMP.ID (If employed in SEC/SIT){" "}
@@ -916,8 +905,12 @@ function Page() {
               type="text"
               required
               name="fatherEmpId"
+              placeholder="Father's EMP.ID"
+              defaultValue={fillDummy ? "123456" : undefined}
             />
           </div>
+
+          {/* Father Mobile */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherMobile" className="text-sm font-normal">
               Mobile No{" "}
@@ -929,8 +922,12 @@ function Page() {
               type="text"
               required
               name="fatherMobile"
+              placeholder="Father's Mobile No"
+              defaultValue={fillDummy ? "9876543210" : undefined}
             />
           </div>
+
+          {/* Father Email */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherEmail" className="text-sm font-normal">
               Email ID{" "}
@@ -942,8 +939,12 @@ function Page() {
               type="email"
               required
               name="fatherEmail"
+              placeholder="Father's Email ID"
+              defaultValue={fillDummy ? "john.doe@example.com" : undefined}
             />
           </div>
+
+          {/* Father Annual Income */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherAnnualIncome" className="text-sm font-normal">
               Annual Income{" "}
@@ -955,21 +956,29 @@ function Page() {
               type="text"
               required
               name="fatherAnnualIncome"
+              placeholder="Father's Annual Income"
+              defaultValue={fillDummy ? "800000" : undefined}
             />
           </div>
+
+          {/* Father Address */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="fatherAreaName" className="text-sm font-normal">
-              Area Name{" "}
+            <label htmlFor="fatherAddress" className="text-sm font-normal">
+              Address{" "}
               <span className="text-sm font-semibold text-red-500">*</span>
             </label>
             <input
-              id="fatherAreaName"
+              id="fatherAddress"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
               required
-              name="fatherAreaName"
+              name="fatherAddress"
+              placeholder="Father's Address"
+              defaultValue={fillDummy ? "123 Main Street" : undefined}
             />
           </div>
+
+          {/* Father City Name */}
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherCityName" className="text-sm font-normal">
               City Name{" "}
@@ -981,20 +990,68 @@ function Page() {
               type="text"
               required
               name="fatherCityName"
+              placeholder="Father's City Name"
+              defaultValue={fillDummy ? "New York" : undefined}
             />
           </div>
+
+          {/* Father State */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="fatherStateName" className="text-sm font-normal">
+            <label htmlFor="fatherState" className="text-sm font-normal">
               State Name{" "}
               <span className="text-sm font-semibold text-red-500">*</span>
             </label>
-            <input
-              id="fatherStateName"
-              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-              type="text"
+            <select
+              id="fatherState"
+              className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
               required
-              name="fatherStateName"
-            />
+              name="fatherState"
+              defaultValue={fillDummy ? "Tamil Nadu" : undefined}
+            >
+              <option value="select" className="text-sm">
+                Select State
+              </option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Assam">Assam</option>
+              <option value="Bihar">Bihar</option>
+              <option value="Chhattisgarh">Chhattisgarh</option>
+              <option value="Goa">Goa</option>
+              <option value="Gujarat">Gujarat</option>
+              <option value="Haryana">Haryana</option>
+              <option value="Himachal Pradesh">Himachal Pradesh</option>
+              <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+              <option value="Jharkhand">Jharkhand</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Kerala">Kerala</option>
+              <option value="Madhya Pradesh">Madhya Pradesh</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Odisha">Odisha</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Rajasthan">Rajasthan</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Telangana">Telangana</option>
+              <option value="Tripura">Tripura</option>
+              <option value="Uttarakhand">Uttarakhand</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="West Bengal">West Bengal</option>
+              <option value="Andaman and Nicobar Islands">
+                Andaman and Nicobar Islands
+              </option>
+              <option value="Chandigarh">Chandigarh</option>
+              <option value="Dadra and Nagar Haveli">
+                Dadra and Nagar Haveli
+              </option>
+              <option value="Daman and Diu">Daman and Diu</option>
+              <option value="Delhi">Delhi</option>
+              <option value="Lakshadweep">Lakshadweep</option>
+              <option value="Pondicherry">Pondicherry</option>
+            </select>
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="fatherPincode" className="text-sm font-normal">
@@ -1005,21 +1062,12 @@ function Page() {
               id="fatherPincode"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
               required
               name="fatherPincode"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="fatherPhone" className="text-sm font-normal">
-              Phone No{" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
-            </label>
-            <input
-              id="fatherPhone"
-              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-              type="text"
-              required
-              name="fatherPhone"
+              placeholder="Father's State Pincode"
+              defaultValue={"600023"}
             />
           </div>
         </div>
@@ -1027,6 +1075,8 @@ function Page() {
         {/* Mother details */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Mother Details</h3>
+
+          {/* Mother Name */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherName" className="text-sm font-normal">
               Name <span className="text-sm font-semibold text-red-500">*</span>
@@ -1037,16 +1087,19 @@ function Page() {
               type="text"
               required
               name="motherName"
+              placeholder="Mother's Name"
+              defaultValue={fillDummy ? "Jane Doe" : undefined}
             />
           </div>
+
+          {/* Mother Qualification */}
           <div className="flex flex-col gap-2">
             <label
               htmlFor="motherQualification"
               className="text-sm font-normal"
             >
-              {" "}
+              Qualification{" "}
               <span className="text-sm font-semibold text-red-500">*</span>
-              Qualification
             </label>
             <input
               id="motherQualification"
@@ -1054,8 +1107,12 @@ function Page() {
               type="text"
               required
               name="motherQualification"
+              placeholder="Mother's Qualification"
+              defaultValue={fillDummy ? "Master's Degree" : undefined}
             />
           </div>
+
+          {/* Mother Occupation */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherOccupation" className="text-sm font-normal">
               Occupation{" "}
@@ -1067,8 +1124,12 @@ function Page() {
               type="text"
               required
               name="motherOccupation"
+              placeholder="Mother's Occupation"
+              defaultValue={fillDummy ? "Doctor" : undefined}
             />
           </div>
+
+          {/* Mother Organization */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherOrganization" className="text-sm font-normal">
               Organization{" "}
@@ -1080,8 +1141,12 @@ function Page() {
               type="text"
               required
               name="motherOrganization"
+              placeholder="Mother's Organization"
+              defaultValue={fillDummy ? "XYZ Hospital" : undefined}
             />
           </div>
+
+          {/* Mother Designation */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherDesignation" className="text-sm font-normal">
               Designation{" "}
@@ -1093,8 +1158,12 @@ function Page() {
               type="text"
               required
               name="motherDesignation"
+              placeholder="Mother's Designation"
+              defaultValue={fillDummy ? "Chief Surgeon" : undefined}
             />
           </div>
+
+          {/* Mother Emp ID */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherEmpId" className="text-sm font-normal">
               EMP.ID (If employed in SEC/SIT){" "}
@@ -1106,8 +1175,12 @@ function Page() {
               type="text"
               required
               name="motherEmpId"
+              placeholder="Mother's EMP.ID"
+              defaultValue={fillDummy ? "654321" : undefined}
             />
           </div>
+
+          {/* Mother Mobile */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherMobile" className="text-sm font-normal">
               Mobile No{" "}
@@ -1119,8 +1192,12 @@ function Page() {
               type="text"
               required
               name="motherMobile"
+              placeholder="Mother's Mobile No"
+              defaultValue={fillDummy ? "9876543210" : undefined}
             />
           </div>
+
+          {/* Mother Email */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherEmail" className="text-sm font-normal">
               Email ID{" "}
@@ -1132,8 +1209,12 @@ function Page() {
               type="email"
               required
               name="motherEmail"
+              placeholder="Mother's Email ID"
+              defaultValue={fillDummy ? "jane.doe@example.com" : undefined}
             />
           </div>
+
+          {/* Mother Annual Income */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherAnnualIncome" className="text-sm font-normal">
               Annual Income{" "}
@@ -1145,21 +1226,29 @@ function Page() {
               type="text"
               required
               name="motherAnnualIncome"
+              placeholder="Mother's Annual Income"
+              defaultValue={fillDummy ? "750000" : undefined}
             />
           </div>
+
+          {/* Mother Address */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="motherAreaName" className="text-sm font-normal">
-              Area Name{" "}
+            <label htmlFor="motherAddress" className="text-sm font-normal">
+              Address{" "}
               <span className="text-sm font-semibold text-red-500">*</span>
             </label>
             <input
-              id="motherAreaName"
+              id="motherAddress"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
               required
-              name="motherAreaName"
+              name="motherAddress"
+              placeholder="Mother's Address"
+              defaultValue={fillDummy ? "456 Oak Avenue" : undefined}
             />
           </div>
+
+          {/* Mother City Name */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherCityName" className="text-sm font-normal">
               City Name{" "}
@@ -1171,21 +1260,34 @@ function Page() {
               type="text"
               required
               name="motherCityName"
+              placeholder="Mother's City Name"
+              defaultValue={fillDummy ? "Los Angeles" : undefined}
             />
           </div>
+
+          {/* Mother State */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="motherStateName" className="text-sm font-normal">
+            <label htmlFor="motherState" className="text-sm font-normal">
               State Name{" "}
               <span className="text-sm font-semibold text-red-500">*</span>
             </label>
-            <input
-              id="motherStateName"
-              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-              type="text"
+            <select
+              id="motherState"
+              className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
               required
-              name="motherStateName"
-            />
+              name="motherState"
+              defaultValue={fillDummy ? "California" : undefined}
+            >
+              <option value="select" className="text-sm">
+                Select State
+              </option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              {/* Add remaining options similarly */}
+            </select>
           </div>
+
+          {/* Mother Pincode */}
           <div className="flex flex-col gap-2">
             <label htmlFor="motherPincode" className="text-sm font-normal">
               Pincode{" "}
@@ -1195,21 +1297,12 @@ function Page() {
               id="motherPincode"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
               required
               name="motherPincode"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="motherPhone" className="text-sm font-normal">
-              Phone No{" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
-            </label>
-            <input
-              id="motherPhone"
-              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-              type="text"
-              required
-              name="motherPhone"
+              placeholder="Mother's State Pincode"
+              defaultValue={fillDummy ? "900123" : undefined}
             />
           </div>
         </div>
@@ -1226,6 +1319,7 @@ function Page() {
             type="text"
             required
             name="place"
+            defaultValue={fillDummy ? "Chennai" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -1238,6 +1332,7 @@ function Page() {
             type="date"
             required
             name="date"
+            defaultValue={fillDummy ? dateTo_YYYY_MM_DD() : undefined}
           />
         </div>
       </div>
@@ -1253,6 +1348,7 @@ function Page() {
             type="text"
             required
             name="parentSignature"
+            defaultValue={fillDummy ? "Yes2" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -1265,10 +1361,15 @@ function Page() {
             type="text"
             required
             name="candidateSignature"
+            defaultValue={fillDummy ? "Yes" : undefined}
           />
         </div>
       </div>
-    </div>
+
+      <div className="flex w-full justify-end">
+        <Button label="Submit" className="w-fit px-8" />
+      </div>
+    </Form>
   );
 }
 
