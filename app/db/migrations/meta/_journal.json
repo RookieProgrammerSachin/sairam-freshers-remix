@@ -8,6 +8,27 @@
       "when": 1718424379715,
       "tag": "0000_violet_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1718461576568,
+      "tag": "0001_magenta_lily_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1718462094852,
+      "tag": "0002_watery_thunderbolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1718462450902,
+      "tag": "0003_flaky_nekra",
+      "breakpoints": true
     }
   ]
 }

@@ -7,9 +7,95 @@ import Button from "@/components/ui/button";
 import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
 import { useRef, useState } from "react";
+import {
+  insertProfileDetails,
+  type CurrentAddressDetails,
+  type EducationDetails,
+  type FamilyDetails,
+  type FatherDetails,
+  type MotherDetails,
+  type PermanentAddressDetails,
+  type PersonalDetails,
+} from "@/db/queries";
 
-export type PersonalDetailsSubmitType = {
+export type SubmitResponseType = {
   message?: string;
+  error?: string;
+};
+
+export type ProfileFormSubmitType = {
+  name: string;
+  dob: string;
+  motherTongue: string;
+  bloodGroup: string;
+  nationality: string;
+  religion: string;
+  community: string;
+  hostelRequired: string;
+  currentAddress: string;
+  currentArea: string;
+  currentCity: string;
+  currentPincode: string;
+  currentState: string;
+  currentCountry: string;
+  currentLandLine: string;
+  currentMobile: string;
+  currentEmail: string;
+  permanentAddress: string;
+  permanentArea: string;
+  permanentCity: string;
+  permanentPincode: string;
+  permanentState: string;
+  permanentCountry: string;
+  permanentLandLine: string;
+  permanentMobile: string;
+  permanentEmail: string;
+  appliedDegree: string;
+  lastQualifying: string;
+  schoolName: string;
+  schoolBranch: string;
+  boardName: string;
+  langMedium: string;
+  regNo: string;
+  gradePercentage: string;
+  dateOfPassing: string;
+  schoolAddress: string;
+  schoolCity: string;
+  schoolPincode: string;
+  noOfBrothers: string;
+  noOfSisters: string;
+  siblingStudyingCount: string;
+  siblingStudyingDetails: string;
+  fatherName: string;
+  fatherQualification: string;
+  fatherOccupation: string;
+  fatherOrganization: string;
+  fatherDesignation: string;
+  fatherEmpId: string;
+  fatherMobile: string;
+  fatherEmail: string;
+  fatherAnnualIncome: string;
+  fatherAddress: string;
+  fatherCityName: string;
+  fatherState: string;
+  fatherPincode: string;
+  motherName: string;
+  motherQualification: string;
+  motherOccupation: string;
+  motherOrganization: string;
+  motherDesignation: string;
+  motherEmpId: string;
+  motherMobile: string;
+  motherEmail: string;
+  motherAnnualIncome: string;
+  motherAddress: string;
+  motherCityName: string;
+  motherState: string;
+  motherPincode: string;
+  place: string;
+  date: string;
+  parentSignature: string;
+  candidateSignature: string;
 };
 
 export const meta: MetaFunction = () => {
@@ -23,10 +109,128 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export async function action({ request }: ActionFunctionArgs) {
   const user = await requireAuthCookie(request);
-  const data = await request.formData();
-  const dataObject = createObjectFromFormData(data);
-  console.log("🚀 ~ action ~ dataObject:", dataObject);
-  return json({ message: "Okay!" }) as PersonalDetailsSubmitType;
+  try {
+    const data = await request.formData();
+    const dataObject = createObjectFromFormData(
+      data,
+    ) as unknown as ProfileFormSubmitType;
+    console.log("🚀 ~ action ~ dataObject:", dataObject);
+    const personalDetails: PersonalDetails = {
+      bloodGroup: dataObject.bloodGroup,
+      community: dataObject.community,
+      dateOfBirth: new Date(dataObject.dob).toDateString(),
+      hostelRequired: dataObject.hostelRequired === "yes",
+      motherTongue: dataObject.motherTongue,
+      name: dataObject.name,
+      nationality: dataObject.nationality,
+      religion: dataObject.religion,
+    };
+    const educationDetails: EducationDetails = {
+      appliedDegree: dataObject.appliedDegree,
+      lastQualifying: dataObject.lastQualifying,
+      schoolBranch: dataObject.schoolBranch,
+      schoolName: dataObject.schoolName,
+      boardName: dataObject.boardName,
+      langMedium: dataObject.langMedium,
+      regNo: dataObject.regNo,
+      gradePercentage: dataObject.gradePercentage,
+      dateOfPassing: dataObject.dateOfPassing,
+      schoolAddress: dataObject.schoolAddress,
+      schoolCity: dataObject.schoolCity,
+      schoolPincode: dataObject.schoolPincode,
+    };
+
+    // /*
+    const currentAddressDetails: CurrentAddressDetails = {
+      type: "current",
+      emailId: dataObject.currentEmail,
+      addressLine1: dataObject.currentAddress,
+      addressLine2: dataObject.currentArea,
+      city: dataObject.currentCity,
+      pincode: dataObject.currentPincode,
+      state: parseInt(dataObject.currentState),
+      country: dataObject.currentCountry,
+      mobileNumber: dataObject.currentMobile,
+      phoneNo: dataObject.currentLandLine ?? null,
+    };
+
+    const permanentAddressDetails: PermanentAddressDetails = {
+      type: "permanent",
+      emailId: dataObject.permanentEmail,
+      addressLine1: dataObject.permanentAddress,
+      addressLine2: dataObject.permanentArea,
+      city: dataObject.permanentCity,
+      pincode: dataObject.permanentPincode,
+      state: parseInt(dataObject.permanentState),
+      country: dataObject.permanentCountry,
+      mobileNumber: dataObject.permanentMobile,
+      phoneNo: dataObject.permanentLandLine ?? null,
+    };
+
+    const familyDetails: FamilyDetails = {
+      noOfBrothers: parseInt(dataObject.noOfBrothers),
+      noOfSisters: parseInt(dataObject.noOfSisters),
+      siblingStudyingCount: parseInt(dataObject.siblingStudyingCount),
+      siblingStudyingDetails: dataObject.siblingStudyingDetails,
+    };
+
+    const motherDetails: MotherDetails = {
+      parentType: "mother",
+      parentAddress: dataObject.motherAddress,
+      parentAnnualIncome: dataObject.motherAnnualIncome,
+      parentCity: dataObject.motherCityName,
+      parentDesignation: dataObject.motherDesignation,
+      parentEmailId: dataObject.motherEmail,
+      parentEmpId: dataObject.motherEmpId,
+      parentMobileNo: dataObject.motherMobile,
+      parentName: dataObject.motherName,
+      parentOccupation: dataObject.motherOccupation,
+      parentOrganization: dataObject.motherOrganization,
+      parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
+      parentPincode: dataObject.motherPincode,
+      parentQualification: dataObject.motherQualification,
+      parentState: parseInt(dataObject.motherState),
+    };
+    const fatherDetails: FatherDetails = {
+      parentType: "father",
+      parentAddress: dataObject.fatherAddress,
+      parentAnnualIncome: dataObject.fatherAnnualIncome,
+      parentCity: dataObject.fatherCityName,
+      parentDesignation: dataObject.fatherDesignation,
+      parentEmailId: dataObject.fatherEmail,
+      parentEmpId: dataObject.fatherEmpId,
+      parentMobileNo: dataObject.fatherMobile,
+      parentName: dataObject.fatherName,
+      parentOccupation: dataObject.fatherOccupation,
+      parentOrganization: dataObject.fatherOrganization,
+      parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
+      parentPincode: dataObject.fatherPincode,
+      parentQualification: dataObject.fatherQualification,
+      parentState: parseInt(dataObject.fatherState),
+    };
+    // */
+
+    const submitProfileDetailsRequest = await insertProfileDetails(
+      user.id as string,
+      personalDetails,
+      educationDetails,
+      currentAddressDetails,
+      permanentAddressDetails,
+      familyDetails,
+      motherDetails,
+      fatherDetails,
+    );
+
+    if (submitProfileDetailsRequest !== "data")
+      return json({
+        error: "Something went wrong with saving your data",
+      }) as SubmitResponseType;
+
+    return json({ message: "Okay!" }) as SubmitResponseType;
+  } catch (error) {
+    console.log("🚀 ~ action ~ error:", error);
+    return json({ error: "Server error!" }) as SubmitResponseType;
+  }
 }
 
 /** For now let all fields be in the same page
@@ -38,10 +242,16 @@ function Page() {
   const [fillDummy, setFillDummy] = useState(false);
   const currentAddressContainer = useRef<HTMLDivElement>(null);
   const permanentAddressContainer = useRef<HTMLDivElement>(null);
+  const gradeInputRef = useRef<HTMLInputElement>(null);
 
   if (submitDataAction?.message) {
     toast.success(submitDataAction.message);
     submitDataAction.message = undefined;
+  }
+
+  if (submitDataAction?.error) {
+    toast.error(submitDataAction.error);
+    submitDataAction.error = undefined;
   }
 
   const fillPermanentAddress = (action: boolean) => {
@@ -278,7 +488,7 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="currentState"
-            defaultValue={fillDummy ? 25 : "select"}
+            defaultValue={fillDummy ? "25" : "select"}
           >
             <option value="select" className="text-sm">
               Select State
@@ -446,7 +656,7 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="permanentState"
-            defaultValue={fillDummy ? 25 : "select"}
+            defaultValue={fillDummy ? "25" : "select"}
           >
             <option value="select" className="text-sm">
               Select State
@@ -636,6 +846,11 @@ function Page() {
             placeholder="Aggregate in %"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
+            ref={gradeInputRef}
+            onInput={(e) =>
+              (e.currentTarget.value =
+                e.currentTarget.value.replace("%", "") + "%")
+            }
             required
             name="gradePercentage"
             defaultValue={fillDummy ? "93.33" : undefined}
@@ -718,7 +933,7 @@ function Page() {
             id="noOfBrothers"
             placeholder="No. of brothers"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
+            type="number"
             required
             name="noOfBrothers"
             defaultValue={fillDummy ? "2" : undefined}
@@ -733,7 +948,7 @@ function Page() {
             id="noOfSisters"
             placeholder="No. of sisters"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
+            type="number"
             required
             name="noOfSisters"
             defaultValue={fillDummy ? "1" : undefined}
@@ -741,14 +956,14 @@ function Page() {
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="siblingStudyingCount" className="text-sm font-normal">
-            Brothers/Sisters studying in Sairam{" "}
+            No. of Brothers/Sisters studying in Sairam{" "}
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <input
             id="siblingStudyingCount"
             placeholder="Brothers/Sisters studying in Sairam"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
+            type="number"
             required
             name="siblingStudyingCount"
             defaultValue={fillDummy ? "1" : undefined}
@@ -979,7 +1194,7 @@ function Page() {
               className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
               required
               name="fatherState"
-              defaultValue={fillDummy ? 25 : "select"}
+              defaultValue={fillDummy ? "25" : "select"}
             >
               <option value="select" className="text-sm">
                 Select State
@@ -1105,13 +1320,11 @@ function Page() {
           <div className="flex flex-col gap-2">
             <label htmlFor="motherEmpId" className="text-sm font-normal">
               EMP.ID (If employed in SEC/SIT){" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
             </label>
             <input
               id="motherEmpId"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
-              required
               name="motherEmpId"
               placeholder="Mother's EMP.ID"
               defaultValue={fillDummy ? "654321" : undefined}
@@ -1214,7 +1427,7 @@ function Page() {
               className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
               required
               name="motherState"
-              defaultValue={fillDummy ? 25 : "select"}
+              defaultValue={fillDummy ? "25" : "select"}
             >
               <option value="select" className="text-sm">
                 Select State
@@ -1268,11 +1481,12 @@ function Page() {
           </label>
           <input
             id="date"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
+            className="pointer-events-none rounded-md bg-white px-3 py-1.5 opacity-50 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="date"
             required
             name="date"
-            defaultValue={fillDummy ? dateTo_YYYY_MM_DD() : undefined}
+            disabled
+            defaultValue={dateTo_YYYY_MM_DD()}
           />
         </div>
       </div>

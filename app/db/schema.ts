@@ -10,6 +10,7 @@ import {
   varchar,
   text,
   integer,
+  smallint,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["ROLE_ADMIN", "ROLE_STUDENT"]);
@@ -67,11 +68,10 @@ export const addressTable = pgTable("address", {
   addressLine2: text("address_line_2"),
   city: varchar("city", { length: 255 }).notNull(),
   pincode: varchar("pincode", { length: 255 }).notNull(),
-  state: smallserial("state_id")
+  state: smallint("state_id")
     .references(() => indianStatesTable.id, {
       onUpdate: "cascade",
     })
-    .unique()
     .notNull(),
   country: varchar("country", { length: 255 }).notNull(),
   phoneNo: varchar("phone_no", { length: 255 }),
@@ -139,36 +139,39 @@ export const parentDetailsTable = pgTable("parents", {
   }).notNull(),
   parentAddress: varchar("parent_address", { length: 255 }).notNull(),
   parentCity: varchar("parent_city", { length: 255 }).notNull(),
-  parentState: smallserial("state_id")
+  parentState: smallint("state_id")
     .references(() => indianStatesTable.id)
     .notNull(),
   parentPincode: varchar("parent_pincode", { length: 255 }).notNull(),
   parentPhoneNo: varchar("parent_phone_no", { length: 255 }),
 });
 
+export const declarationTable = pgTable("declaration", {
+  id: smallserial("id").unique().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userTable.id, {
+      onUpdate: "cascade",
+    })
+    .notNull(),
+  place: varchar("place").notNull(),
+  date: timestamp("date").defaultNow(),
+  parentSignature: text("parent_signature").notNull(),
+  candidateSignature: text("candidate_signature").notNull(),
+});
+
 /** Im not even sure if I need these types anywhere, let's see anyway */
-export type personalDetailsType = typeof personalDetailsTable.$inferSelect;
+export type PersonalDetailsType = typeof personalDetailsTable.$inferSelect;
 export type EducationType = typeof educationTable.$inferSelect;
 export type AddressType = typeof addressTable.$inferSelect;
 export type FamilyDetailsType = typeof familyDetailsTable.$inferSelect;
+export type ParentDetailsType = typeof parentDetailsTable.$inferSelect;
 
 /** RELATIONS FOR TABLES
  * ``only`` used if I use db.query.<tableName>. so on
  * Not necessary to mention if i use sql style db.select().from(<tableName>), which i am probably gonna do
  * hence, stop with these relations for now, maybe add later?
  */
-export const userTableRelations = relations(userTable, ({ many, one }) => ({
-  personalDetails: one(personalDetailsTable),
-  educationDetails: one(educationTable),
-  addressDetails: many(addressTable),
-}));
 
-export const personalDetailsTableRelations = relations(
-  personalDetailsTable,
-  ({ one }) => ({
-    userDetails: one(userTable, {
-      fields: [personalDetailsTable.userId],
-      references: [userTable.id],
-    }),
-  }),
-);
+// I have just deleted relations definiton because drizzle is strict on defining relations completely or else it wont open
+// so removing it has now opened drizzle error free
+// if needed, pull back old commits to get the relations

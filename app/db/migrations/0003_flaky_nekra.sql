@@ -1,0 +1,1 @@
+ALTER TABLE "address" DROP CONSTRAINT "address_state_id_unique";
