@@ -33,12 +33,12 @@ export const userTable = pgTable("users", {
 });
 
 export const indianStatesTable = pgTable("states", {
-  id: smallserial("id"),
+  id: smallserial("id").unique().primaryKey(),
   state: varchar("state").notNull(),
 });
 
 export const personalDetailsTable = pgTable("personal_details", {
-  id: smallserial("id").primaryKey(),
+  id: smallserial("id").unique().primaryKey(),
   userId: uuid("user_id")
     .references(() => userTable.id, {
       onUpdate: "cascade",
@@ -56,7 +56,7 @@ export const personalDetailsTable = pgTable("personal_details", {
 
 /** Per person 2 addresses, one temporary, another permanent.. hence insert twice per user */
 export const addressTable = pgTable("address", {
-  id: smallserial("id").primaryKey(),
+  id: smallserial("id").unique().primaryKey(),
   userId: uuid("user_id")
     .references(() => userTable.id, {
       onUpdate: "cascade",
@@ -67,8 +67,11 @@ export const addressTable = pgTable("address", {
   addressLine2: text("address_line_2"),
   city: varchar("city", { length: 255 }).notNull(),
   pincode: varchar("pincode", { length: 255 }).notNull(),
-  state: smallserial("state")
-    .references(() => indianStatesTable.id)
+  state: smallserial("state_id")
+    .references(() => indianStatesTable.id, {
+      onUpdate: "cascade",
+    })
+    .unique()
     .notNull(),
   country: varchar("country", { length: 255 }).notNull(),
   phoneNo: varchar("phone_no", { length: 255 }),
@@ -77,7 +80,7 @@ export const addressTable = pgTable("address", {
 });
 
 export const educationTable = pgTable("education", {
-  id: smallserial("id").primaryKey(),
+  id: smallserial("id").unique().primaryKey(),
   userId: uuid("user_id")
     .references(() => userTable.id, {
       onUpdate: "cascade",
@@ -100,7 +103,7 @@ export const educationTable = pgTable("education", {
 });
 
 export const familyDetailsTable = pgTable("family", {
-  id: smallserial("id").primaryKey(),
+  id: smallserial("id").unique().primaryKey(),
   userId: uuid("user_id")
     .references(() => userTable.id, {
       onUpdate: "cascade",
@@ -114,7 +117,7 @@ export const familyDetailsTable = pgTable("family", {
 
 /** Similar to ```addressTable``` need to create one pair of entry for each user with alternating parent type */
 export const parentDetailsTable = pgTable("parents", {
-  id: smallserial("id").primaryKey(),
+  id: smallserial("id").unique().primaryKey(),
   userId: uuid("user_id")
     .references(() => userTable.id, {
       onUpdate: "cascade",
@@ -136,7 +139,7 @@ export const parentDetailsTable = pgTable("parents", {
   }).notNull(),
   parentAddress: varchar("parent_address", { length: 255 }).notNull(),
   parentCity: varchar("parent_city", { length: 255 }).notNull(),
-  parentState: smallserial("parent_state")
+  parentState: smallserial("state_id")
     .references(() => indianStatesTable.id)
     .notNull(),
   parentPincode: varchar("parent_pincode", { length: 255 }).notNull(),

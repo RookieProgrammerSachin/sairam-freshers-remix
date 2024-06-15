@@ -33,7 +33,11 @@ export const login = async (
   password: string,
 ): Promise<ValidCookieType> => {
   const userData = await db
-    .select()
+    .select({
+      name: userTable.name,
+      register: userTable.applicationNo,
+      password: userTable.password,
+    })
     .from(userTable)
     .where(
       and(
