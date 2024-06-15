@@ -32,6 +32,11 @@ export const userTable = pgTable("users", {
   updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
 });
 
+export const indianStatesTable = pgTable("states", {
+  id: smallserial("id"),
+  state: varchar("state").notNull(),
+});
+
 export const personalDetailsTable = pgTable("personal_details", {
   id: smallserial("id").primaryKey(),
   userId: uuid("user_id")
@@ -62,7 +67,9 @@ export const addressTable = pgTable("address", {
   addressLine2: text("address_line_2"),
   city: varchar("city", { length: 255 }).notNull(),
   pincode: varchar("pincode", { length: 255 }).notNull(),
-  state: varchar("state", { length: 255 }).notNull(),
+  state: smallserial("state")
+    .references(() => indianStatesTable.id)
+    .notNull(),
   country: varchar("country", { length: 255 }).notNull(),
   phoneNo: varchar("phone_no", { length: 255 }),
   mobileNumber: varchar("mobile_number", { length: 255 }).notNull(),
@@ -129,7 +136,9 @@ export const parentDetailsTable = pgTable("parents", {
   }).notNull(),
   parentAddress: varchar("parent_address", { length: 255 }).notNull(),
   parentCity: varchar("parent_city", { length: 255 }).notNull(),
-  parentState: varchar("parent_state", { length: 255 }).notNull(),
+  parentState: smallserial("parent_state")
+    .references(() => indianStatesTable.id)
+    .notNull(),
   parentPincode: varchar("parent_pincode", { length: 255 }).notNull(),
   parentPhoneNo: varchar("parent_phone_no", { length: 255 }),
 });
