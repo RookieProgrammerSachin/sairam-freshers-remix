@@ -17,10 +17,11 @@ import {
   type PermanentAddressDetails,
   type PersonalDetails,
 } from "@/db/queries";
+import { ProfileFormErrorType, validateProfileData } from "@/utils/validate";
 
 export type SubmitResponseType = {
   message?: string;
-  error?: string;
+  error?: ProfileFormErrorType;
 };
 
 export type ProfileFormSubmitType = {
@@ -115,6 +116,11 @@ export async function action({ request }: ActionFunctionArgs) {
       data,
     ) as unknown as ProfileFormSubmitType;
     console.log("🚀 ~ action ~ dataObject:", dataObject);
+
+    const validation = validateProfileData(dataObject);
+    if (Object.keys(validation).length > 0)
+      return json({ error: validation } as SubmitResponseType, 400);
+
     const personalDetails: PersonalDetails = {
       bloodGroup: dataObject.bloodGroup,
       community: dataObject.community,
@@ -250,7 +256,18 @@ function Page() {
   }
 
   if (submitDataAction?.error) {
-    toast.error(submitDataAction.error);
+    if (typeof submitDataAction.error === "string") {
+      toast.error(submitDataAction.error);
+    } else {
+      Object.keys(submitDataAction.error).forEach((err) => {
+        const errrs = submitDataAction.error;
+        // @ts-expect-error:next-line
+        toast.error(errrs[err], {
+          autoClose: false,
+          closeOnClick: false,
+        });
+      });
+    }
     submitDataAction.error = undefined;
   }
 

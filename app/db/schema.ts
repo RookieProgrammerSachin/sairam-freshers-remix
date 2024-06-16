@@ -44,6 +44,7 @@ export const personalDetailsTable = pgTable("personal_details", {
     .references(() => userTable.id, {
       onUpdate: "cascade",
     })
+    .unique()
     .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   dateOfBirth: date("date_of_birth").notNull(),
@@ -85,6 +86,7 @@ export const educationTable = pgTable("education", {
     .references(() => userTable.id, {
       onUpdate: "cascade",
     })
+    .unique()
     .notNull(),
   appliedDegree: varchar("applied_degree", { length: 255 }).notNull(),
   lastQualifying: varchar("last_qualifying", { length: 255 }).notNull(),
@@ -108,6 +110,7 @@ export const familyDetailsTable = pgTable("family", {
     .references(() => userTable.id, {
       onUpdate: "cascade",
     })
+    .unique()
     .notNull(),
   noOfBrothers: integer("no_of_brothers").notNull(),
   noOfSisters: integer("no_of_sisters").notNull(),
@@ -152,6 +155,7 @@ export const declarationTable = pgTable("declaration", {
     .references(() => userTable.id, {
       onUpdate: "cascade",
     })
+    .unique()
     .notNull(),
   place: varchar("place").notNull(),
   date: timestamp("date").defaultNow(),

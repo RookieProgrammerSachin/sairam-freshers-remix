@@ -15,6 +15,8 @@ if (!secret)
 export type ValidCookieType = {
   id?: string;
   name?: string;
+  userId?: string;
+  role?: string;
 } | null;
 
 /** Cookie creation function */
@@ -37,6 +39,8 @@ export const login = async (
       name: userTable.name,
       register: userTable.applicationNo,
       password: userTable.password,
+      userId: userTable.id,
+      role: userTable.role,
     })
     .from(userTable)
     .where(
@@ -51,7 +55,12 @@ export const login = async (
 
   if (userData.length !== 1) return null;
 
-  return { id: register, name: userData[0].name };
+  return {
+    id: register,
+    name: userData[0].name,
+    userId: userData[0].userId,
+    role: userData[0].role,
+  };
 };
 
 /** Validate cookie's shape and return cookie or false */
@@ -59,6 +68,7 @@ export const validateCookie = (
   cookie: ValidCookieType,
 ): false | ValidCookieType => {
   if (!cookie) return false;
+  if (cookie.role === "ROLE_ADMIN") return false;
   if (cookie.id?.length === 11) return cookie; // TODO: make a better cookie validation logic
   return false;
 };
