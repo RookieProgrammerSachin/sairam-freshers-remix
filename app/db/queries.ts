@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from ".";
 import {
   addressTable,
@@ -179,4 +179,172 @@ export async function insertProfileDetails(
     // */
   });
   return `data`;
+}
+export type ProfileDetails = {
+  id: string;
+  applicationNo: string;
+  password: string;
+  name: string;
+  emailId: string;
+  mobile: string;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  appliedDegree: string;
+  lastQualifying: string;
+  schoolBranch: string;
+  schoolName: string;
+  boardName: string;
+  langMedium: string;
+  regNo: string;
+  gradePercentage: string;
+  dateOfPassing: string;
+  schoolAddress: string;
+  schoolCity: string;
+  schoolPincode: string;
+  noOfBrothers: string;
+  noOfSisters: string;
+  siblingStudyingCount: string;
+  siblingStudyingDetails: string;
+  dateOfBirth: string;
+  motherTongue: string;
+  bloodGroup: string;
+  nationality: string;
+  religion: string;
+  community: string;
+  hostelRequired: string;
+  currentId: string;
+  currentUserId: string;
+  currentType: string;
+  currentAddressLine1: string;
+  currentAddressLine2: string;
+  currentCity: string;
+  currentPincode: string;
+  currentState: string;
+  currentCountry: string;
+  currentPhoneNo: string;
+  currentMobileNumber: string;
+  currentEmailId: string;
+  permanentId: string;
+  permanentUserId: string;
+  permanentType: string;
+  permanentAddressLine1: string;
+  permanentAddressLine2: string;
+  permanentCity: string;
+  permanentPincode: string;
+  permanentState: string;
+  permanentCountry: string;
+  permanentPhoneNo: string;
+  permanentMobileNumber: string;
+  permanentEmailId: string;
+  fatherId: string;
+  fatherUserId: string;
+  fatherParentType: string;
+  fatherParentName: string;
+  fatherParentQualification: string;
+  fatherParentOccupation: string;
+  fatherParentOrganization: string;
+  fatherParentDesignation: string;
+  fatherParentEmpId: string;
+  fatherParentMobileNo: string;
+  fatherParentEmailId: string;
+  fatherParentAnnualIncome: string;
+  fatherParentAddress: string;
+  fatherParentCity: string;
+  fatherParentState: string;
+  fatherParentPincode: string;
+  fatherParentPhoneNo: string;
+  motherId: string;
+  motherUserId: string;
+  motherParentType: string;
+  motherParentName: string;
+  motherParentQualification: string;
+  motherParentOccupation: string;
+  motherParentOrganization: string;
+  motherParentDesignation: string;
+  motherParentEmpId: string;
+  motherParentMobileNo: string;
+  motherParentEmailId: string;
+  motherParentAnnualIncome: string;
+  motherParentAddress: string;
+  motherParentCity: string;
+  motherParentState: string;
+  motherParentPincode: string;
+  motherParentPhoneNo: string;
+};
+
+export async function getAllProfileDetails(userId: string) {
+  let result = {};
+  const data = await db
+    .select()
+    .from(userTable)
+    .innerJoin(
+      personalDetailsTable,
+      eq(personalDetailsTable.userId, userTable.id),
+    )
+    .innerJoin(addressTable, eq(addressTable.userId, userTable.id))
+    .innerJoin(educationTable, eq(educationTable.userId, userTable.id))
+    .innerJoin(familyDetailsTable, eq(familyDetailsTable.userId, userTable.id))
+    .innerJoin(parentDetailsTable, eq(parentDetailsTable.userId, userTable.id))
+    .where(eq(userTable.id, userId));
+
+  /** Joins are kind of wild in here, so i wanted them to be flattened af so that i can directly start using it */
+  result = {
+    ...data[0].users,
+    ...data[0].education,
+    ...data[0].family,
+    ...data[0].personal_details,
+  };
+
+  const currentAddress = {};
+  const permanentAddress = {};
+  const fatherDetails = {};
+  const motherDetails = {};
+
+  const currentAddressFromData = data.find(
+    (x) => x.address.type === "current",
+  )?.address;
+
+  const permanentAddressFromData = data.find(
+    (x) => x.address.type === "permanent",
+  )?.address;
+
+  const fatherDetailsFromData = data.find(
+    (x) => x.parents.parentType === "father",
+  )?.parents;
+  const motherDetailsFromData = data.find(
+    (x) => x.parents.parentType === "mother",
+  )?.parents;
+
+  Object.keys(currentAddressFromData).forEach((key) => {
+    currentAddress["current" + key.at(0)?.toUpperCase() + key.slice(1)] =
+      currentAddressFromData[key];
+  });
+
+  Object.keys(permanentAddressFromData).forEach((key) => {
+    permanentAddress["permanent" + key.at(0)?.toUpperCase() + key.slice(1)] =
+      permanentAddressFromData[key];
+  });
+
+  Object.keys(fatherDetailsFromData).forEach((key) => {
+    fatherDetails["father" + key.at(0)?.toUpperCase() + key.slice(1)] =
+      fatherDetailsFromData[key];
+  });
+
+  Object.keys(motherDetailsFromData).forEach((key) => {
+    motherDetails["mother" + key.at(0)?.toUpperCase() + key.slice(1)] =
+      motherDetailsFromData[key];
+  });
+
+  result = {
+    ...result,
+    ...currentAddress,
+    ...permanentAddress,
+    ...fatherDetails,
+    ...motherDetails,
+  };
+
+  /** Do i really have to go through all this mess? for real? */
+  return result as ProfileDetails;
 }

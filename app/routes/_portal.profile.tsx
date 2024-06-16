@@ -1,4 +1,9 @@
-import { Form, MetaFunction, useActionData } from "@remix-run/react";
+import {
+  Form,
+  MetaFunction,
+  useActionData,
+  useLoaderData,
+} from "@remix-run/react";
 import { ErrorBoundary } from "@/root";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { requireAuthCookie } from "@/utils/auth";
@@ -6,8 +11,9 @@ import { COMMUNITIES, INDIAN_STATES } from "@/static/portal.profile";
 import Button from "@/components/ui/button";
 import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  getAllProfileDetails,
   insertProfileDetails,
   type CurrentAddressDetails,
   type EducationDetails,
@@ -104,8 +110,11 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const per = performance.now();
   const user = await requireAuthCookie(request);
-  return user;
+  const profileDetails = await getAllProfileDetails(user.userId as string);
+  console.log(performance.now() - per);
+  return profileDetails;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -245,10 +254,22 @@ export async function action({ request }: ActionFunctionArgs) {
 
 function Page() {
   const submitDataAction = useActionData<typeof action>();
+  const profileDetails = useLoaderData<typeof loader>();
+  console.log("🚀 ~ Page ~ profileDetails:", profileDetails);
+
   const [fillDummy, setFillDummy] = useState(false);
   const currentAddressContainer = useRef<HTMLDivElement>(null);
   const permanentAddressContainer = useRef<HTMLDivElement>(null);
   const gradeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    Object.keys(profileDetails).forEach((data) => {
+      const elem = document.querySelector<HTMLInputElement>(
+        `input[name=${data}`,
+      );
+      if (elem) elem.defaultValue = profileDetails[data];
+    });
+  }, [profileDetails]);
 
   if (submitDataAction?.message) {
     toast.success(submitDataAction.message);
