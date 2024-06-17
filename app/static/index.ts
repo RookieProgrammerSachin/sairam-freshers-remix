@@ -7,7 +7,7 @@ export const RULES: string[] = [
   `It is illegal to slide on the hood of a car.`,
 ];
 
-export const NAV_LINKS: { link: string, label: string }[] = [
+export const NAV_LINKS: { link: string; label: string }[] = [
   {
     label: "Fresher's Guide",
     link: "/guide",
@@ -19,5 +19,12 @@ export const NAV_LINKS: { link: string, label: string }[] = [
   {
     label: "Provisional Admission Letter",
     link: "/admission",
+  },
+];
+
+export const ADMIN_NAV_LINKS = [
+  {
+    label: "Edit Meeting Schedule",
+    link: "/admin/schedule",
   },
 ];

@@ -1,4 +1,5 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import crypto from "node:crypto";
 import { db } from ".";
 import {
   addressTable,
@@ -89,6 +90,18 @@ async function admin_setUserDates() {
     .update(userTable)
     .set({ createdAt: new Date(), updatedAt: new Date() });
   console.log("🚀 ~ admin_setUserDates ~ data:", data);
+}
+
+/** Add admin user */
+async function admin_addAdminUser() {
+  await db.insert(userTable).values({
+    applicationNo: "1",
+    emailId: "brindha.it@sairam.edu.in",
+    mobile: "8754582225",
+    name: "Brindha Devi",
+    password: crypto.createHash("sha256").update("freshers@123").digest("hex"),
+    role: "ROLE_ADMIN",
+  });
 }
 
 /** NOTE: following are the actualy queries to be used and are exported from here */
@@ -318,23 +331,33 @@ export async function getAllProfileDetails(userId: string) {
   )?.parents;
 
   Object.keys(currentAddressFromData).forEach((key) => {
-    currentAddress["current" + key.at(0)?.toUpperCase() + key.slice(1)] =
-      currentAddressFromData[key];
+    const newKey = "current" + key.at(0)?.toUpperCase() + key.slice(1);
+    currentAddress[newKey as keyof typeof currentAddressFromData] =
+      currentAddressFromData[key as keyof typeof currentAddressFromData];
   });
 
   Object.keys(permanentAddressFromData).forEach((key) => {
-    permanentAddress["permanent" + key.at(0)?.toUpperCase() + key.slice(1)] =
-      permanentAddressFromData[key];
+    permanentAddress[
+      ("permanent" +
+        key.at(0)?.toUpperCase() +
+        key.slice(1)) as keyof typeof permanentAddressFromData
+    ] = permanentAddressFromData[key as keyof typeof permanentAddressFromData];
   });
 
   Object.keys(fatherDetailsFromData).forEach((key) => {
-    fatherDetails["father" + key.at(0)?.toUpperCase() + key.slice(1)] =
-      fatherDetailsFromData[key];
+    fatherDetails[
+      ("father" +
+        key.at(0)?.toUpperCase() +
+        key.slice(1)) as keyof typeof fatherDetailsFromData
+    ] = fatherDetailsFromData[key as keyof typeof fatherDetailsFromData];
   });
 
   Object.keys(motherDetailsFromData).forEach((key) => {
-    motherDetails["mother" + key.at(0)?.toUpperCase() + key.slice(1)] =
-      motherDetailsFromData[key];
+    motherDetails[
+      ("mother" +
+        key.at(0)?.toUpperCase() +
+        key.slice(1)) as keyof typeof motherDetailsFromData
+    ] = motherDetailsFromData[key as keyof typeof motherDetailsFromData];
   });
 
   result = {

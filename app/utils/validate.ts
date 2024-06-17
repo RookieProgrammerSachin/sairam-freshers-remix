@@ -27,7 +27,10 @@ export const validateLogin = (data: LoginData) => {
     errors.general = "Data parameters not present!";
   }
 
-  if (String(data.register).length !== 11) {
+  if (
+    String(data.register).length !== 11 &&
+    ![1, 2].includes(String(data.register).length) // this is to check if admin is accessing as admin only has one or two digit register numbers
+  ) {
     errors.register = "Invalid register number";
   }
 

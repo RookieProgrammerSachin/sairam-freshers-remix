@@ -16,7 +16,7 @@ export type ValidCookieType = {
   id?: string;
   name?: string;
   userId?: string;
-  role?: string;
+  role?: "ROLE_ADMIN" | "ROLE_STUDENT";
 } | null;
 
 /** Cookie creation function */
@@ -64,12 +64,21 @@ export const login = async (
 };
 
 /** Validate cookie's shape and return cookie or false */
-export const validateCookie = (
+export const validateUserCookie = (
   cookie: ValidCookieType,
 ): false | ValidCookieType => {
   if (!cookie) return false;
   if (cookie.role === "ROLE_ADMIN") return false;
   if (cookie.id?.length === 11) return cookie; // TODO: make a better cookie validation logic
+  return false;
+};
+
+export const validateAdminCookie = (
+  cookie: ValidCookieType,
+): false | ValidCookieType => {
+  if (!cookie) return false;
+  if (cookie.role === "ROLE_STUDENT") return false;
+  if ([1, 2].includes(String(cookie.id)?.length)) return cookie; // TODO: make a better cookie validation logic
   return false;
 };
 
@@ -79,7 +88,7 @@ export const checkCookieAndLogin = async (request: Request) => {
   const decodedCookie = await loginCookie.parse(cookies);
   // console.log("🚀 Middleware cookie:", decodedCookie);
 
-  const validCookie = validateCookie(decodedCookie);
+  const validCookie = validateUserCookie(decodedCookie);
   if (validCookie) throw redirect("/home");
   return validCookie;
 };
@@ -88,7 +97,20 @@ export const checkCookieAndLogin = async (request: Request) => {
 export const requireAuthCookie = async (request: Request) => {
   const cookies = request.headers.get("Cookie");
   const decodedCookie = await loginCookie.parse(cookies);
-  const validCookie = validateCookie(decodedCookie);
+  const validCookie = validateUserCookie(decodedCookie);
+  if (!validCookie)
+    throw redirect("/", {
+      headers: {
+        "Set-Cookie": await loginCookie.serialize("", { maxAge: 0 }),
+      },
+    });
+  return validCookie;
+};
+
+export const requireAdminCookie = async (request: Request) => {
+  const cookies = request.headers.get("Cookie");
+  const decodedCookie = await loginCookie.parse(cookies);
+  const validCookie = validateAdminCookie(decodedCookie);
   if (!validCookie)
     throw redirect("/", {
       headers: {

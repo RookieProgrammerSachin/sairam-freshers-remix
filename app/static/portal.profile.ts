@@ -60,6 +60,56 @@ export const DB_TO_FORM_MAP = {
   schoolAddress: "schoolAddress",
   schoolCity: "schoolCity",
   schoolPincode: "schoolPincode",
+  noOfBrothers: "noOfBrothers",
+  noOfSisters: "noOfSisters",
+  siblingStudyingCount: "siblingStudyingCount",
+  siblingStudyingDetails: "siblingStudyingDetails",
+  currentAddressLine1: "currentAddress",
+  currentAddressLine2: "currentArea",
+  currentCity: "currentCity",
+  currentPincode: "currentPincode",
+  currentState: "currentState",
+  currentCountry: "currentCountry",
+  currentPhoneNo: "currentLandLine",
+  currentMobileNumber: "currentMobile",
+  currentEmailId: "currentEmail",
+  permanentAddressLine1: "permanentAddress",
+  permanentAddressLine2: "permanentArea",
+  permanentCity: "permanentCity",
+  permanentPincode: "permanentPincode",
+  permanentState: "permanentState",
+  permanentCountry: "permanentCountry",
+  permanentPhoneNo: "permanentLandLine",
+  permanentMobileNumber: "permanentMobile",
+  permanentEmailId: "permanentEmail",
+  fatherParentName: "fatherName",
+  fatherParentQualification: "fatherQualification",
+  fatherParentOccupation: "fatherOccupation",
+  fatherParentOrganization: "fatherOrganization",
+  fatherParentDesignation: "fatherDesignation",
+  fatherParentEmpId: "fatherEmpId",
+  fatherParentMobileNo: "fatherMobile",
+  fatherParentEmailId: "fatherEmail",
+  fatherParentAnnualIncome: "fatherAnnualIncome",
+  fatherParentAddress: "fatherAddress",
+  fatherParentCity: "fatherCityName",
+  fatherParentState: "fatherState",
+  fatherParentPincode: "fatherPincode",
+  fatherParentPhoneNo: "fatherPhoneNo",
+  motherParentName: "motherName",
+  motherParentQualification: "motherQualification",
+  motherParentOccupation: "motherOccupation",
+  motherParentOrganization: "motherOrganization",
+  motherParentDesignation: "motherDesignation",
+  motherParentEmpId: "motherEmpId",
+  motherParentMobileNo: "motherMobile",
+  motherParentEmailId: "motherEmail",
+  motherParentAnnualIncome: "motherAnnualIncome",
+  motherParentAddress: "motherAddress",
+  motherParentCity: "motherCityName",
+  motherParentState: "motherState",
+  motherParentPincode: "motherPincode",
+  motherParentPhoneNo: "motherPhoneNo",
 };
 
 export type ProfileDetails = {
@@ -122,7 +172,7 @@ export type ProfileDetails = {
   permanentEmailId: string;
   fatherId: string;
   fatherUserId: string;
-  fatherParentType: string;
+  fatherType: string;
   fatherParentName: string;
   fatherParentQualification: string;
   fatherParentOccupation: string;

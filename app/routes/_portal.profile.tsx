@@ -7,7 +7,11 @@ import {
 import { ErrorBoundary } from "@/root";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { requireAuthCookie } from "@/utils/auth";
-import { COMMUNITIES, INDIAN_STATES } from "@/static/portal.profile";
+import {
+  COMMUNITIES,
+  DB_TO_FORM_MAP,
+  INDIAN_STATES,
+} from "@/static/portal.profile";
 import Button from "@/components/ui/button";
 import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
@@ -24,6 +28,7 @@ import {
   type PersonalDetails,
 } from "@/db/queries";
 import { ProfileFormErrorType, validateProfileData } from "@/utils/validate";
+import { nanoid } from "nanoid";
 
 export type SubmitResponseType = {
   message?: string;
@@ -265,9 +270,11 @@ function Page() {
   useEffect(() => {
     Object.keys(profileDetails).forEach((data) => {
       const elem = document.querySelector<HTMLInputElement>(
-        `input[name=${data}`,
+        `input[name=${DB_TO_FORM_MAP[data]}]`,
       );
-      if (elem) elem.defaultValue = profileDetails[data];
+
+      if (elem)
+        elem.defaultValue = profileDetails[data as keyof typeof profileDetails];
     });
   }, [profileDetails]);
 
@@ -420,18 +427,33 @@ function Page() {
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <select
-            defaultValue={fillDummy ? "BC" : "select"}
             id="community"
             className="rounded-md bg-white px-3 py-1.5 text-sm outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="community"
           >
             <option value="select">Select</option>
-            {COMMUNITIES.map((community, i) => (
-              <option value={community} key={i}>
-                {community}
-              </option>
-            ))}
+            {COMMUNITIES.map((community, i) => {
+              console.log(
+                community === profileDetails.community,
+                profileDetails.community,
+                community,
+              );
+
+              if (community === profileDetails.community) {
+                return (
+                  <option value={community} key={nanoid(3)} selected={true}>
+                    {community}
+                  </option>
+                );
+              } else {
+                return (
+                  <option value={community} key={nanoid(3)}>
+                    {community}
+                  </option>
+                );
+              }
+            })}
           </select>
         </div>
         <div className="flex flex-col gap-1">
@@ -440,14 +462,14 @@ function Page() {
             <span className="text-sm font-semibold text-red-500">*</span>
           </label>
           <select
-            defaultValue={fillDummy ? "yes" : "no"}
             id="hostelRequired"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             required
+            defaultValue={profileDetails.hostelRequired ? "yes" : "no"}
             name="hostelRequired"
           >
-            <option value="yes">Yes</option>
             <option value="no">No</option>
+            <option value="yes">Yes</option>
           </select>
         </div>
       </div>
@@ -526,16 +548,24 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="currentState"
-            defaultValue={fillDummy ? "25" : "select"}
           >
             <option value="select" className="text-sm">
               Select State
             </option>
-            {INDIAN_STATES.map((state) => (
-              <option value={state.id} key={state.id}>
-                {state.state}
-              </option>
-            ))}
+            {INDIAN_STATES.map((state) => {
+              if (state.id === profileDetails.currentState)
+                return (
+                  <option value={state.id} key={nanoid(3)} selected>
+                    {state.state}
+                  </option>
+                );
+              else
+                return (
+                  <option value={state.id} key={nanoid(3)}>
+                    {state.state}
+                  </option>
+                );
+            })}
           </select>
         </div>
         <div className="flex flex-col gap-1">
@@ -699,11 +729,20 @@ function Page() {
             <option value="select" className="text-sm">
               Select State
             </option>
-            {INDIAN_STATES.map((state) => (
-              <option value={state.id} key={state.id}>
-                {state.state}
-              </option>
-            ))}
+            {INDIAN_STATES.map((state) => {
+              if (state.id === profileDetails.permanentState)
+                return (
+                  <option value={state.id} key={nanoid(3)} selected>
+                    {state.state}
+                  </option>
+                );
+              else
+                return (
+                  <option value={state.id} key={nanoid(3)}>
+                    {state.state}
+                  </option>
+                );
+            })}
           </select>
         </div>
         <div className="flex flex-col gap-1">
@@ -1237,11 +1276,20 @@ function Page() {
               <option value="select" className="text-sm">
                 Select State
               </option>
-              {INDIAN_STATES.map((state) => (
-                <option value={state.id} key={state.id}>
-                  {state.state}
-                </option>
-              ))}
+              {INDIAN_STATES.map((state) => {
+                if (state.id === profileDetails.fatherParentState)
+                  return (
+                    <option value={state.id} key={nanoid(3)} selected>
+                      {state.state}
+                    </option>
+                  );
+                else
+                  return (
+                    <option value={state.id} key={nanoid(3)}>
+                      {state.state}
+                    </option>
+                  );
+              })}
             </select>
           </div>
           <div className="flex flex-col gap-2">
@@ -1470,11 +1518,20 @@ function Page() {
               <option value="select" className="text-sm">
                 Select State
               </option>
-              {INDIAN_STATES.map((state) => (
-                <option value={state.id} key={state.id}>
-                  {state.state}
-                </option>
-              ))}
+              {INDIAN_STATES.map((state) => {
+                if (state.id === profileDetails.motherParentState)
+                  return (
+                    <option value={state.id} key={nanoid(3)} selected>
+                      {state.state}
+                    </option>
+                  );
+                else
+                  return (
+                    <option value={state.id} key={nanoid(3)}>
+                      {state.state}
+                    </option>
+                  );
+              })}
             </select>
           </div>
 
