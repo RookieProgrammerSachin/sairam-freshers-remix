@@ -8,6 +8,7 @@ import {
   deptEnum,
   educationTable,
   EducationType,
+  eventGuests,
   familyDetailsTable,
   FamilyDetailsType,
   indianStatesTable,
@@ -15,9 +16,11 @@ import {
   ParentDetailsType,
   personalDetailsTable,
   PersonalDetailsType,
+  scheduleTable,
+  ScheduleType,
   userTable,
 } from "./schema";
-import { userData } from ".local/user-data";
+// import { userData } from ".local/user-data";
 
 /** NOTE: functions with prefix "admin_" must only be used by admin to manipulate data manually and NOT to be exported to be used by
  * server or client or such
@@ -108,7 +111,7 @@ async function admin_addAdminUser() {
 }
 
 /** Update all user info to have department and college */
-async function admin_updateUser() {
+/* async function admin_updateUser() {
   const users = await db.query.userTable.findMany();
   for (let i = 0; i < users.length; i++) {
     console.log("🚀 ~ admin_updateUser ~ appNo:", users[i].applicationNo);
@@ -127,6 +130,7 @@ async function admin_updateUser() {
   }
   console.log("done");
 }
+*/
 
 /** NOTE: following are the actualy queries to be used and are exported from here */
 
@@ -146,77 +150,6 @@ export type MotherDetails = Omit<ParentDetailsType, "userId" | "id"> & {
 export type FatherDetails = Omit<ParentDetailsType, "userId" | "id"> & {
   parentType: "father";
 };
-
-/** Query DB to get user data with register no */
-export function getUserDataFromRegisterNo(applicationNo: string) {
-  const data = db
-    .select()
-    .from(userTable)
-    .where(eq(userTable.applicationNo, applicationNo));
-  return data;
-}
-
-export async function insertProfileDetails(
-  applicationNo: string,
-  personalDetails: PersonalDetails,
-  educationDetails: EducationDetails,
-  currentAddressDetails: CurrentAddressDetails,
-  permanentAddressDetails: PermanentAddressDetails,
-  familyDetails: FamilyDetails,
-  motherDetails: MotherDetails,
-  fatherDetails: FatherDetails,
-) {
-  const user = await db
-    .select({ id: userTable.id })
-    .from(userTable)
-    .where(eq(userTable.applicationNo, applicationNo));
-  if (user.length !== 1) return null;
-
-  const userId = user[0].id;
-
-  await db.transaction(async (tx) => {
-    await tx.insert(personalDetailsTable).values({
-      userId,
-      ...personalDetails,
-    });
-
-    // similarly keep inserting into tables and return finally every table with joint values
-    await tx.insert(educationTable).values({
-      userId,
-      ...educationDetails,
-    });
-
-    // /**
-    await tx.insert(addressTable).values([
-      {
-        userId,
-        ...currentAddressDetails,
-      },
-      {
-        userId,
-        ...permanentAddressDetails,
-      },
-    ]);
-
-    await tx.insert(familyDetailsTable).values({
-      userId,
-      ...familyDetails,
-    });
-
-    await tx.insert(parentDetailsTable).values([
-      {
-        userId,
-        ...motherDetails,
-      },
-      {
-        userId,
-        ...fatherDetails,
-      },
-    ]);
-    // */
-  });
-  return `data`;
-}
 export type ProfileDetails = {
   id: string;
   applicationNo: string;
@@ -310,6 +243,80 @@ export type ProfileDetails = {
   motherParentPincode: string;
   motherParentPhoneNo: string;
 };
+export type EventDetails = Omit<ScheduleType, "id" | "createdBy"> & {
+  eventGuest: string;
+};
+
+/** Query DB to get user data with register no */
+export function getUserDataFromRegisterNo(applicationNo: string) {
+  const data = db
+    .select()
+    .from(userTable)
+    .where(eq(userTable.applicationNo, applicationNo));
+  return data;
+}
+
+export async function insertProfileDetails(
+  applicationNo: string,
+  personalDetails: PersonalDetails,
+  educationDetails: EducationDetails,
+  currentAddressDetails: CurrentAddressDetails,
+  permanentAddressDetails: PermanentAddressDetails,
+  familyDetails: FamilyDetails,
+  motherDetails: MotherDetails,
+  fatherDetails: FatherDetails,
+) {
+  const user = await db
+    .select({ id: userTable.id })
+    .from(userTable)
+    .where(eq(userTable.applicationNo, applicationNo));
+  if (user.length !== 1) return null;
+
+  const userId = user[0].id;
+
+  await db.transaction(async (tx) => {
+    await tx.insert(personalDetailsTable).values({
+      userId,
+      ...personalDetails,
+    });
+
+    // similarly keep inserting into tables and return finally every table with joint values
+    await tx.insert(educationTable).values({
+      userId,
+      ...educationDetails,
+    });
+
+    // /**
+    await tx.insert(addressTable).values([
+      {
+        userId,
+        ...currentAddressDetails,
+      },
+      {
+        userId,
+        ...permanentAddressDetails,
+      },
+    ]);
+
+    await tx.insert(familyDetailsTable).values({
+      userId,
+      ...familyDetails,
+    });
+
+    await tx.insert(parentDetailsTable).values([
+      {
+        userId,
+        ...motherDetails,
+      },
+      {
+        userId,
+        ...fatherDetails,
+      },
+    ]);
+    // */
+  });
+  return `data`;
+}
 
 export async function getAllProfileDetails(userId: string) {
   let result = {};
@@ -394,4 +401,37 @@ export async function getAllProfileDetails(userId: string) {
 
   /** Do i really have to go through all this mess? for real? */
   return result as ProfileDetails;
+}
+
+export async function createEvent(userId: string, eventData: EventDetails) {
+  const schedule = await db
+    .insert(scheduleTable)
+    .values({
+      createdBy: userId,
+      eventName: eventData.eventName,
+      eventConductor: eventData.eventConductor,
+      eventConductorContact: eventData.eventConductorContact,
+      eventCoordinator:
+        eventData.eventCoordinator === "" ? null : eventData.eventCoordinator,
+      eventCoordinatorContact:
+        eventData.eventCoordinatorContact === ""
+          ? null
+          : eventData.eventCoordinatorContact,
+      eventDept: eventData.eventDept,
+      eventDescription: eventData.eventDescription,
+      eventFeedbackLink:
+        eventData.eventFeedbackLink === "" ? null : eventData.eventFeedbackLink,
+      eventLink: eventData.eventLink === "" ? null : eventData.eventLink,
+      eventTiming: eventData.eventTiming === "" ? null : eventData.eventTiming,
+    })
+    .returning();
+  const guests = eventData.eventGuest;
+  if (guests.split(",").length > 0)
+    await db.insert(eventGuests).values(
+      guests.split(",").map((guest) => ({
+        guestName: guest,
+        eventId: schedule[0].id,
+      })),
+    );
+  return "data";
 }

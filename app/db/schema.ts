@@ -183,7 +183,6 @@ export const declarationTable = pgTable("declaration", {
     .references(() => userTable.id, {
       onUpdate: "cascade",
     })
-    .unique()
     .notNull(),
   place: varchar("place").notNull(),
   date: timestamp("date").defaultNow(),
@@ -197,7 +196,6 @@ export const scheduleTable = pgTable("schedule", {
     .references(() => userTable.id, {
       onUpdate: "cascade",
     })
-    .unique()
     .notNull(),
   eventName: text("event_name").notNull(),
   eventTiming: timestamp("event_time", { mode: "string" }),

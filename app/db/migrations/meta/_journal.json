@@ -64,6 +64,27 @@
       "when": 1718598911191,
       "tag": "0008_simple_proteus",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1718635737886,
+      "tag": "0009_wooden_warstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1718639633840,
+      "tag": "0010_milky_joystick",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1718639763639,
+      "tag": "0011_square_calypso",
+      "breakpoints": true
     }
   ]
 }

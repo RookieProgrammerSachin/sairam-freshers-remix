@@ -10,12 +10,8 @@ import {
 
 export function MultiSelectCreatable({
   inputFieldName,
-  //   value,
-  //   setValue,
 }: {
   inputFieldName: string;
-  //   value: string[];
-  //   setValue: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -127,16 +123,10 @@ export function MultiSelectCreatable({
           </Combobox.Options>
         </Combobox.Dropdown>
       </Combobox>
-      {/* Somehow break head to use this trick as in :
-        https://github.com/mantinedev/mantine/blob/master/packages/%40mantine/core/src/components/MultiSelect/MultiSelect.tsx#L434
-        EDIT: figured it out, probably delete comment
-      */}
       <Combobox.HiddenInput
         name={inputFieldName}
         valuesDivider={","}
         value={value}
-        // form={form}
-        // {...hiddenInputProps}
       />
     </>
   );

@@ -1,0 +1,1 @@
+ALTER TABLE "declaration" DROP CONSTRAINT "declaration_user_id_unique";

@@ -1,3 +1,4 @@
+import { EventDetails } from "@/db/queries";
 import { ProfileFormSubmitType } from "@/routes/_portal.profile";
 
 export type LoginErrorObjectType = {
@@ -13,6 +14,8 @@ export type ProfileFormErrorType = Partial<{
   fatherState: string;
   motherState: string;
 }>;
+
+export type EventDetailsErrorType = Partial<EventDetails & { general: string }>;
 
 export interface LoginData {
   register: string;
@@ -66,6 +69,20 @@ export const validateProfileData = (data: ProfileFormSubmitType) => {
 
   if (String(data.motherState) === "select") {
     errors.motherState = "Invalid mother address state";
+  }
+
+  return errors;
+};
+
+export const validateEventData = (data: EventDetails) => {
+  const errors: EventDetailsErrorType = {};
+
+  if (!(Object.keys(data).length > 0)) {
+    errors.general = "Data paramters not found!";
+  }
+
+  if (data.eventDept === "") {
+    errors.eventDept = "Select department!";
   }
 
   return errors;
