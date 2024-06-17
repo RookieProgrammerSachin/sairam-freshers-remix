@@ -28,6 +28,7 @@ export const collegeEnum = pgEnum("college", [
  * but fuck it, all departments are enums now
  */
 export const deptEnum = pgEnum("department", [
+  "All Departments",
   "Artificial Intelligence and Data Science",
   "Electronics and Communication Engineering",
   "Electrical and Electronics Engineering",

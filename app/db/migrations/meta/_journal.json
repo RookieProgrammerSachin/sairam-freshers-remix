@@ -57,6 +57,13 @@
       "when": 1718596520441,
       "tag": "0007_aspiring_marrow",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1718598911191,
+      "tag": "0008_simple_proteus",
+      "breakpoints": true
     }
   ]
 }

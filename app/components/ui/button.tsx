@@ -5,7 +5,7 @@ type ButtonProps = {
   disabled?: boolean;
   className?: string;
   disabledComponent?: ReactNode;
-  label: string;
+  label: string | ReactNode;
 };
 
 function Button({
@@ -22,7 +22,7 @@ function Button({
           disabled
             ? "pointer-events-none cursor-default bg-accent/50"
             : "bg-accent"
-        } mb-6 grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`,
+        } grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`,
         className,
       )}
     >

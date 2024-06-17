@@ -1616,7 +1616,7 @@ function Page() {
       </div>
 
       <div className="flex w-full justify-end">
-        <Button label="Submit" className="w-fit px-8" />
+        <Button label="Submit" className="mb-6 w-fit px-8" />
       </div>
     </Form>
   );

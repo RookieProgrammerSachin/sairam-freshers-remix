@@ -8,7 +8,6 @@ import { requireAuthCookie } from "@/utils/auth";
 import { LoaderFunctionArgs, defer } from "@remix-run/node";
 import { Suspense } from "react";
 import ScheduleLoader from "@/components/ScheduleLoader";
-import { Skeleton } from "@mantine/core";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Freshers portal - Orientation | Sairam Freshers" }];
