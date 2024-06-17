@@ -22,8 +22,7 @@ import { MdOutlineArrowOutward } from "react-icons/md";
 import { LoaderFunctionArgs } from "react-router";
 import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
 import { createObjectFromFormData } from "@/utils";
-import { ScheduleType } from "@/db/schema";
-import { EventDetails, createEvent } from "@/db/queries";
+import { EventDetails, createEvent, getAllEvents } from "@/db/queries";
 import { EventDetailsErrorType, validateEventData } from "@/utils/validate";
 import { toast } from "react-toastify";
 
@@ -33,17 +32,16 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireAdminCookie(request);
-  const orientationData = new Promise<typeof ORIENTATION_DUMMY_DATA>(
-    (resolve) => setTimeout(() => resolve(ORIENTATION_DUMMY_DATA), 1000),
-  );
+  const orientationData = getAllEvents();
   return defer({ orientationData });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const user = await requireAdminCookie(request);
-  type EventDetailsResponse =
-    | { error: EventDetailsErrorType }
-    | { message: string };
+  type EventDetailsResponse = {
+    error?: EventDetailsErrorType;
+    message?: string;
+  };
   try {
     const data = await request.formData();
     const dataObject = createObjectFromFormData(
@@ -83,9 +81,10 @@ function SchedulePage() {
     addEvent.message = undefined;
   }
 
-  if (addEvent && addEvent.error) {
+  if (addEvent && typeof addEvent.error !== "undefined") {
     Object.keys(addEvent.error).forEach((err) =>
-      toast.error(addEvent.error[err]),
+      // @ts-expect-error edho error varalaamaam?
+      toast.error(addEvent.error[err as keyof typeof addEvent.error]),
     );
     addEvent.error = undefined;
   }
@@ -290,17 +289,22 @@ function SchedulePage() {
                     {/* date */}
                     <p className="flex items-center gap-1 text-xs text-gray-600 md:text-sm">
                       <CiCalendarDate size={16} color="#228be6" />
-                      {new Date(orientation.timing).toLocaleString(undefined, {
-                        timeZone: "Asia/Calcutta",
-                      })}
+                      {orientation.eventTiming
+                        ? new Date(orientation.eventTiming).toLocaleString(
+                            undefined,
+                            {
+                              timeZone: "Asia/Calcutta",
+                            },
+                          )
+                        : "Yet to be published"}
                     </p>
                     {/* title */}
                     <h3 className="text-sm md:text-base">
-                      {orientation.name} <br />
+                      {orientation.eventName} <br />
                     </h3>
                     {/* link */}
                     <Link
-                      to={orientation.link}
+                      to={orientation.eventLink ? orientation.eventLink : "#"}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center gap-1 text-sm text-blue-400 md:text-base"
@@ -311,6 +315,7 @@ function SchedulePage() {
                   <div className="ml-auto flex flex-col items-center gap-2">
                     <Button
                       className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
+                      to={`${orientation.id}/edit`}
                       label={
                         <>
                           <BiPencil />

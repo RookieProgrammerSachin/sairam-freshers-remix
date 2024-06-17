@@ -9,6 +9,7 @@ import {
   educationTable,
   EducationType,
   eventGuests,
+  EventGuestsType,
   familyDetailsTable,
   FamilyDetailsType,
   indianStatesTable,
@@ -434,4 +435,25 @@ export async function createEvent(userId: string, eventData: EventDetails) {
       })),
     );
   return "data";
+}
+
+export async function getAllEvents() {
+  const data = await db
+    .select()
+    .from(scheduleTable)
+    .innerJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id));
+  const allScheduleIds = Array.from(
+    new Set(data.map((record) => record.schedule.id)),
+  );
+  const allEventGuests = data.map((record) => record.event_guests);
+  const response = allScheduleIds.map((id) => {
+    const currentSchedule = data.find((d) => d.schedule.id === id)?.schedule;
+    if (currentSchedule) {
+      return {
+        ...currentSchedule,
+        eventGuests: allEventGuests.filter((guests) => guests.eventId === id),
+      };
+    }
+  });
+  return response;
 }
