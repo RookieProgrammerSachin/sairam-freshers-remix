@@ -4,9 +4,9 @@ import { ALL_DEPARTMENTS } from "@/static/admin.schedule";
 import { ORIENTATION_DUMMY_DATA } from "@/static/portal.orientation";
 import { requireAdminCookie } from "@/utils/auth";
 import { MultiSelect } from "@mantine/core";
-import { MetaFunction, defer } from "@remix-run/node";
-import { Await, Link, useLoaderData } from "@remix-run/react";
-import { Suspense } from "react";
+import { ActionFunctionArgs, MetaFunction, defer, json } from "@remix-run/node";
+import { Await, Form, Link, useLoaderData } from "@remix-run/react";
+import { Suspense, useState } from "react";
 import { BiPencil } from "react-icons/bi";
 import { BsPlus } from "react-icons/bs";
 import { IoMdTrash } from "react-icons/io";
@@ -15,6 +15,9 @@ import { CiCalendarDate } from "react-icons/ci";
 import { MdOutlineArrowOutward } from "react-icons/md";
 import { LoaderFunctionArgs } from "react-router";
 import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
+import { createObjectFromFormData } from "@/utils";
+import { ScheduleType } from "@/db/schema";
+import axios from "axios";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Freshers portal - Orientation | Sairam Freshers" }];
@@ -28,11 +31,34 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return defer({ orientationData });
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireAdminCookie(request);
+  const data = await request.formData();
+  const dataObject = createObjectFromFormData(data) as unknown as Omit<
+    ScheduleType,
+    "id" | "createdBy"
+  >;
+  console.log("🚀 ~ action ~ dataObject:", dataObject);
+  return json(dataObject);
+}
+
 function SchedulePage() {
   const { orientationData } = useLoaderData<typeof loader>();
+  // const [guests, setGuests] = useState<string[]>([]);
+
   return (
     <div className="flex w-full flex-col gap-5">
-      <div className="flex flex-col gap-4 rounded-md border-[3px] border-dashed bg-primary p-4">
+      <Form
+        method="POST"
+        className="flex flex-col gap-4 rounded-md border-[3px] border-dashed bg-primary p-4"
+        // onSubmit={async (event) => {
+        //   event.preventDefault();
+        //   const formData = new FormData(event.currentTarget);
+        //   formData.append("eventGuests", guests.toString());
+        //   const response = await axios.postForm("/admin/schedule", formData);
+        //   console.log("🚀 ~ onSubmit={ ~ response:", response);
+        // }}
+      >
         <h1 className="flex items-center text-2xl font-semibold">
           <BsPlus />
           {"  "}Add new event{" "}
@@ -61,7 +87,6 @@ function SchedulePage() {
               id="eventTiming"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="datetime-local"
-              required
               name="eventTiming"
             />
           </div>
@@ -77,7 +102,6 @@ function SchedulePage() {
               placeholder="Event meeting link"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="url"
-              required
               name="eventLink"
             />
           </div>
@@ -91,7 +115,6 @@ function SchedulePage() {
               placeholder="Event meeting link"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="url"
-              required
               name="eventFeedbackLink"
             />
           </div>
@@ -145,14 +168,13 @@ function SchedulePage() {
           <div className="flex flex-col gap-1">
             <label htmlFor="eventCoordinator" className="text-sm font-normal">
               Event coordinator{" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
+              {/* <span className="text-sm font-semibold text-red-500">*</span> */}
             </label>
             <input
               id="eventCoordinator"
               placeholder="Event coordinator's name"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
-              required
               name="eventCoordinator"
             />
           </div>
@@ -162,14 +184,13 @@ function SchedulePage() {
               className="text-sm font-normal"
             >
               Event coordinator contact{" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
+              {/* <span className="text-sm font-semibold text-red-500">*</span> */}
             </label>
             <input
               id="eventCoordinatorContact"
               placeholder="Event coordinator's email or mobile"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
-              required
               name="eventCoordinatorContact"
             />
           </div>
@@ -220,13 +241,17 @@ function SchedulePage() {
               required
               name="eventGuest"
             /> */}
-            <MultiSelectCreatable />
+            <MultiSelectCreatable
+              inputFieldName="eventGuest"
+              // value={guests}
+              // setValue={setGuests}
+            />
           </div>
         </div>
         <div className="flex w-full items-center justify-end">
           <Button label="Submit" className="w-fit px-8" />
         </div>
-      </div>
+      </Form>
 
       <div className="flex w-full flex-col gap-2">
         <h1 className="flex items-center text-2xl font-semibold">

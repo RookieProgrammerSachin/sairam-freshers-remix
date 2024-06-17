@@ -8,7 +8,15 @@ import {
   useCombobox,
 } from "@mantine/core";
 
-export function MultiSelectCreatable() {
+export function MultiSelectCreatable({
+  inputFieldName,
+  //   value,
+  //   setValue,
+}: {
+  inputFieldName: string;
+  //   value: string[];
+  //   setValue: React.Dispatch<React.SetStateAction<string[]>>;
+}) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
     onDropdownOpen: () => combobox.updateSelectedOptionIndex("active"),
@@ -56,64 +64,80 @@ export function MultiSelectCreatable() {
     ));
 
   return (
-    <Combobox
-      store={combobox}
-      onOptionSubmit={handleValueSelect}
-      withinPortal={false}
-      withArrow
-      arrowSize={16}
-      shadow="xl"
-    >
-      <Combobox.DropdownTarget>
-        <PillsInput onClick={() => combobox.openDropdown()}>
-          <Pill.Group>
-            {values}
+    <>
+      <Combobox
+        store={combobox}
+        onOptionSubmit={handleValueSelect}
+        withinPortal={false}
+        withArrow
+        arrowSize={16}
+        shadow="xl"
+      >
+        <Combobox.DropdownTarget>
+          <PillsInput onClick={() => combobox.openDropdown()}>
+            <Pill.Group>
+              {values}
 
-            <Combobox.EventsTarget>
-              <PillsInput.Field
-                onFocus={() => combobox.openDropdown()}
-                onBlur={() => combobox.closeDropdown()}
-                value={search}
-                placeholder="Add guests"
-                onChange={(event) => {
-                  combobox.updateSelectedOptionIndex();
-                  setSearch(event.currentTarget.value);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Backspace" && search.length === 0) {
-                    event.preventDefault();
-                    handleValueRemove(value[value.length - 1]);
-                  }
-                  if (
-                    event.key === "Enter" &&
-                    !exactOptionMatch &&
-                    search.trim().length > 0
-                  ) {
-                    event.preventDefault();
-                    handleValueSelect("$create");
-                  }
-                }}
-              />
-            </Combobox.EventsTarget>
-          </Pill.Group>
-        </PillsInput>
-      </Combobox.DropdownTarget>
+              <Combobox.EventsTarget>
+                <PillsInput.Field
+                  onFocus={() => combobox.openDropdown()}
+                  onBlur={() => combobox.closeDropdown()}
+                  value={search}
+                  //   name={inputFieldName}
+                  placeholder="Add guests"
+                  onChange={(event) => {
+                    combobox.updateSelectedOptionIndex();
+                    setSearch(event.currentTarget.value);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Backspace" && search.length === 0) {
+                      event.preventDefault();
+                      handleValueRemove(value[value.length - 1]);
+                    }
+                    if (
+                      event.key === "Enter" &&
+                      !exactOptionMatch &&
+                      search.trim().length > 0
+                    ) {
+                      event.preventDefault();
+                      handleValueSelect("$create");
+                    }
+                  }}
+                />
+              </Combobox.EventsTarget>
+            </Pill.Group>
+          </PillsInput>
+        </Combobox.DropdownTarget>
 
-      <Combobox.Dropdown>
-        <Combobox.Options>
-          {options}
+        <Combobox.Dropdown>
+          <Combobox.Options>
+            {options}
 
-          {!exactOptionMatch && search.trim().length > 0 && (
-            <Combobox.Option value="$create">+ Create {search}</Combobox.Option>
-          )}
-
-          {exactOptionMatch &&
-            search.trim().length > 0 &&
-            options.length === 0 && (
-              <Combobox.Empty>Nothing found</Combobox.Empty>
+            {!exactOptionMatch && search.trim().length > 0 && (
+              <Combobox.Option value="$create">
+                + Create {search}
+              </Combobox.Option>
             )}
-        </Combobox.Options>
-      </Combobox.Dropdown>
-    </Combobox>
+
+            {exactOptionMatch &&
+              search.trim().length > 0 &&
+              options.length === 0 && (
+                <Combobox.Empty>Nothing found</Combobox.Empty>
+              )}
+          </Combobox.Options>
+        </Combobox.Dropdown>
+      </Combobox>
+      {/* Somehow break head to use this trick as in :
+        https://github.com/mantinedev/mantine/blob/master/packages/%40mantine/core/src/components/MultiSelect/MultiSelect.tsx#L434
+        EDIT: figured it out, probably delete comment
+      */}
+      <Combobox.HiddenInput
+        name={inputFieldName}
+        valuesDivider={","}
+        value={value}
+        // form={form}
+        // {...hiddenInputProps}
+      />
+    </>
   );
 }
