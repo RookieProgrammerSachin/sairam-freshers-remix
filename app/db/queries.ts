@@ -4,6 +4,8 @@ import { db } from ".";
 import {
   addressTable,
   AddressType,
+  collegeEnum,
+  deptEnum,
   educationTable,
   EducationType,
   familyDetailsTable,
@@ -15,6 +17,7 @@ import {
   PersonalDetailsType,
   userTable,
 } from "./schema";
+import { userData } from ".local/user-data";
 
 /** NOTE: functions with prefix "admin_" must only be used by admin to manipulate data manually and NOT to be exported to be used by
  * server or client or such
@@ -102,6 +105,27 @@ async function admin_addAdminUser() {
     password: crypto.createHash("sha256").update("freshers@123").digest("hex"),
     role: "ROLE_ADMIN",
   });
+}
+
+/** Update all user info to have department and college */
+async function admin_updateUser() {
+  const users = await db.query.userTable.findMany();
+  for (let i = 0; i < users.length; i++) {
+    console.log("🚀 ~ admin_updateUser ~ appNo:", users[i].applicationNo);
+    const currUser = userData.find(
+      (user) => String(user.Application_Number) === users[i].applicationNo,
+    );
+    console.log("🚀 ~ admin_updateUser ~ currUser:", currUser);
+    if (!currUser) continue;
+    await db
+      .update(userTable)
+      .set({
+        college: currUser?.College_Allocated as typeof collegeEnum.schema,
+        department: currUser?.Department_Allocated as typeof deptEnum.schema,
+      })
+      .where(eq(userTable.applicationNo, String(currUser?.Application_Number)));
+  }
+  console.log("done");
 }
 
 /** NOTE: following are the actualy queries to be used and are exported from here */

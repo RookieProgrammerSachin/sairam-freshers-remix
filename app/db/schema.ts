@@ -20,6 +20,32 @@ export const parentTypeEnum = pgEnum("parent_type", [
   "mother",
   "guardian",
 ]);
+export const collegeEnum = pgEnum("college", [
+  "SRI SAIRAM INSTITUTE OF TECHNOLOGY",
+  "SRI SAIRAM ENGINEERING COLLEGE",
+]);
+/** I should probably have stored department as separate table and then used its id
+ * but fuck it, all departments are enums now
+ */
+export const deptEnum = pgEnum("department", [
+  "Artificial Intelligence and Data Science",
+  "Electronics and Communication Engineering",
+  "Electrical and Electronics Engineering",
+  "Information Technology",
+  "Civil Engineering",
+  "Computer Science and Engineering",
+  "Electronics and Instrumentation Engineering",
+  "Integrated Computer Science and Engineering",
+  "Mechanical and Automation Engineering",
+  "Mechanical Engineering",
+  "Computer Science and Business System",
+  "AIML",
+  "ANY",
+  "Computer and Communication Engineering",
+  "Instrumentation and Control Engineering",
+  "Cyber Security",
+  "Internet of Things",
+]);
 
 export const userTable = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -29,6 +55,8 @@ export const userTable = pgTable("users", {
   emailId: varchar("email").notNull(),
   mobile: varchar("mobile").notNull(),
   role: roleEnum("role").notNull(),
+  college: collegeEnum("college"),
+  department: deptEnum("department"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
 });

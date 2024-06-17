@@ -43,6 +43,20 @@
       "when": 1718505085780,
       "tag": "0005_curly_angel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1718596474786,
+      "tag": "0006_naive_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1718596520441,
+      "tag": "0007_aspiring_marrow",
+      "breakpoints": true
     }
   ]
 }
