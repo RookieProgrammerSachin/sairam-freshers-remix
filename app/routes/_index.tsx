@@ -86,8 +86,8 @@ export default function Index() {
   }
 
   return (
-    <main className="grid min-h-screen w-full grid-cols-[1.3fr_1.7fr] items-center justify-center">
-      <div className="flex items-center justify-center">
+    <main className="grid min-h-screen w-full items-center justify-center md:grid-cols-[1.3fr_1.7fr]">
+      <div className="flex h-[80vh] items-center justify-center md:h-[unset]">
         <Form
           method="POST"
           className="flex w-[22rem] flex-col gap-4 rounded-lg bg-card px-4 py-12 pb-4 outline outline-1 outline-gray-300"

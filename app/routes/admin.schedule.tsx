@@ -14,6 +14,7 @@ import { CgLink } from "react-icons/cg";
 import { CiCalendarDate } from "react-icons/ci";
 import { MdOutlineArrowOutward } from "react-icons/md";
 import { LoaderFunctionArgs } from "react-router";
+import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
 
 export const meta: MetaFunction = () => {
   return [{ title: "Freshers portal - Orientation | Sairam Freshers" }];
@@ -43,30 +44,14 @@ function SchedulePage() {
               <span className="text-sm font-semibold text-red-500">*</span>
             </label>
             <input
-              id="name"
+              id="eventName"
               placeholder="Event Name"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
               required
-              name="name"
+              name="eventName"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="conductor" className="text-sm font-normal">
-              Event conductor{" "}
-              <span className="text-sm font-semibold text-red-500">*</span>
-            </label>
-            <input
-              id="conductor"
-              placeholder="Event conductor's name"
-              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-              type="text"
-              required
-              name="conductor"
-            />
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-1">
             <label htmlFor="eventTiming" className="text-sm font-normal">
               Event date & time{" "}
@@ -80,6 +65,8 @@ function SchedulePage() {
               name="eventTiming"
             />
           </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-1">
             <label htmlFor="eventLink" className="text-sm font-normal">
               Event Link{" "}
@@ -92,6 +79,20 @@ function SchedulePage() {
               type="url"
               required
               name="eventLink"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="eventFeedbackLink" className="text-sm font-normal">
+              Event Feedback link{" "}
+              <span className="text-sm font-semibold text-red-500">*</span>
+            </label>
+            <input
+              id="eventFeedbackLink"
+              placeholder="Event meeting link"
+              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
+              type="url"
+              required
+              name="eventFeedbackLink"
             />
           </div>
         </div>
@@ -109,6 +110,72 @@ function SchedulePage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-1">
+            <label htmlFor="eventConductor" className="text-sm font-normal">
+              Event conductor{" "}
+              <span className="text-sm font-semibold text-red-500">*</span>
+            </label>
+            <input
+              id="eventConductor"
+              placeholder="Event conductor's name"
+              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
+              type="text"
+              required
+              name="eventConductor"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="eventConductorContact"
+              className="text-sm font-normal"
+            >
+              Event conductor contact{" "}
+              <span className="text-sm font-semibold text-red-500">*</span>
+            </label>
+            <input
+              id="eventConductorContact"
+              placeholder="Event conductor's email or mobile"
+              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
+              type="text"
+              required
+              name="eventConductorContact"
+            />
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="eventCoordinator" className="text-sm font-normal">
+              Event coordinator{" "}
+              <span className="text-sm font-semibold text-red-500">*</span>
+            </label>
+            <input
+              id="eventCoordinator"
+              placeholder="Event coordinator's name"
+              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
+              type="text"
+              required
+              name="eventCoordinator"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="eventCoordinatorContact"
+              className="text-sm font-normal"
+            >
+              Event coordinator contact{" "}
+              <span className="text-sm font-semibold text-red-500">*</span>
+            </label>
+            <input
+              id="eventCoordinatorContact"
+              placeholder="Event coordinator's email or mobile"
+              className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
+              type="text"
+              required
+              name="eventCoordinatorContact"
+            />
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-1">
             <MultiSelect
               label={
                 <>
@@ -119,6 +186,7 @@ function SchedulePage() {
               comboboxProps={{
                 shadow: "xl",
                 withArrow: true,
+                arrowSize: 16,
               }}
               placeholder="Choose department"
               data={ALL_DEPARTMENTS}
@@ -144,14 +212,15 @@ function SchedulePage() {
               Event Guests{" "}
               <span className="text-sm font-semibold text-red-500">*</span>
             </label>
-            <input
+            {/* <input
               id="eventGuest"
               placeholder="Event guests"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="url"
               required
               name="eventGuest"
-            />
+            /> */}
+            <MultiSelectCreatable />
           </div>
         </div>
         <div className="flex w-full items-center justify-end">

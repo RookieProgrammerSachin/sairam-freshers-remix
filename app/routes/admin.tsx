@@ -53,7 +53,7 @@ function Layout() {
               <MenuItems
                 anchor="bottom"
                 className={
-                  "z-50 mt-2 w-36 rounded-md bg-white py-1 outline outline-1 outline-gray-300"
+                  "z-50 mt-2 w-full rounded-md bg-white py-1 shadow-md outline outline-1 outline-gray-300 md:w-36"
                 }
               >
                 <MenuItem>

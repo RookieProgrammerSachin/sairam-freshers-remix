@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
   boolean,
   date,
@@ -192,12 +191,50 @@ export const declarationTable = pgTable("declaration", {
   candidateSignature: text("candidate_signature").notNull(),
 });
 
-/** Im not even sure if I need these types anywhere, let's see anyway */
+export const scheduleTable = pgTable("schedule", {
+  id: smallserial("id").unique().primaryKey(),
+  createdBy: uuid("user_id")
+    .references(() => userTable.id, {
+      onUpdate: "cascade",
+    })
+    .unique()
+    .notNull(),
+  eventName: text("event_name").notNull(),
+  eventTiming: timestamp("event_time", { mode: "string" }),
+  eventLink: text("event_link"),
+  eventFeedbackLink: text("event_feedback_link"),
+  eventDept: text("event_dept"), // --> SUPER LAZY APPROACH: Just serialize array of strings and pass them from frontend, NEVER do this
+  eventDescription: text("event_description"),
+  eventConductor: text("event_conductor"),
+  eventConductorContact: text("event_conductor_contact"),
+  eventCoordinator: text("event_coordinator"),
+  eventCoordinatorContact: text("event_coordinator_contact"),
+  eventRequirements: text("event_requirements"),
+  // eventGuests: smallint("event_guests_id").references(() => eventGuests.id) ---> I tried making a mongo mistake of linking two tables
+  // to each other which wont work in SQL.
+});
+
+export const eventGuests = pgTable("event_guests", {
+  id: smallserial("id").unique().primaryKey(),
+  eventId: smallint("event_id")
+    .references(() => scheduleTable.id, {
+      onUpdate: "cascade",
+      onDelete: "cascade",
+    })
+    .notNull(),
+  guestName: text("guest_name"),
+  // maybe in the future add guest design, guest other details, etc.
+});
+
+/** Im not even sure if I need these types anywhere, let's see anyway. EDIT: These have really been helpful */
 export type PersonalDetailsType = typeof personalDetailsTable.$inferSelect;
 export type EducationType = typeof educationTable.$inferSelect;
 export type AddressType = typeof addressTable.$inferSelect;
 export type FamilyDetailsType = typeof familyDetailsTable.$inferSelect;
 export type ParentDetailsType = typeof parentDetailsTable.$inferSelect;
+export type DeclarationType = typeof declarationTable.$inferSelect;
+export type ScheduleType = typeof scheduleTable.$inferSelect;
+export type EventGuestsType = typeof eventGuests.$inferSelect;
 
 /** RELATIONS FOR TABLES
  * ``only`` used if I use db.query.<tableName>. so on
