@@ -10,8 +10,10 @@ import {
 
 export function MultiSelectCreatable({
   inputFieldName,
+  defaultValues = []
 }: {
   inputFieldName: string;
+  defaultValues?: string[];
 }) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -19,8 +21,8 @@ export function MultiSelectCreatable({
   });
 
   const [search, setSearch] = useState("");
-  const [data, setData] = useState<string[]>([]);
-  const [value, setValue] = useState<string[]>([]);
+  const [data, setData] = useState<string[]>(defaultValues);
+  const [value, setValue] = useState<string[]>(defaultValues);
 
   const exactOptionMatch = data.some((item) => item === search);
 

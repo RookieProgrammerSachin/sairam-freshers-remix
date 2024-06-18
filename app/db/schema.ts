@@ -208,6 +208,8 @@ export const scheduleTable = pgTable("schedule", {
   eventCoordinator: text("event_coordinator"),
   eventCoordinatorContact: text("event_coordinator_contact"),
   eventRequirements: text("event_requirements"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
   // eventGuests: smallint("event_guests_id").references(() => eventGuests.id) ---> I tried making a mongo mistake of linking two tables
   // to each other which wont work in SQL.
 });

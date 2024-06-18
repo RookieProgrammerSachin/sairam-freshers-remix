@@ -75,8 +75,8 @@ function Layout() {
 
         {/* Page Content */}
         <div className="flex max-h-fit flex-col rounded-md border bg-card px-4 py-8 md:w-full md:max-w-[80vw] md:px-8 md:py-12">
-          <h1 className="text-2xl font-semibold">Welcome, {userData.name}!</h1>
-          <p className="mb-6">Use the menu on the left to navigate</p>
+          {/* <h1 className="text-2xl font-semibold">Welcome, {userData.name}!</h1>
+          <p className="mb-6">Use the menu on the left to navigate</p> */}
 
           <Outlet />
         </div>

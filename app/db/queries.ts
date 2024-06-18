@@ -427,7 +427,7 @@ export async function createEvent(userId: string, eventData: EventDetails) {
     })
     .returning();
   const guests = eventData.eventGuest;
-  if (guests.split(",").length > 0)
+  if (guests.trim() !== "")
     await db.insert(eventGuests).values(
       guests.split(",").map((guest) => ({
         guestName: guest,
@@ -441,19 +441,41 @@ export async function getAllEvents() {
   const data = await db
     .select()
     .from(scheduleTable)
-    .innerJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id));
+    .fullJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id)); // changed from rightJoin or innerJoin to  fullJoin, cus whichever schedule table did not have any guests, were neglected
+  console.log("🚀 ~ getAllEvents ~ data:", data);
   const allScheduleIds = Array.from(
-    new Set(data.map((record) => record.schedule.id)),
+    new Set(data.map((record) => record.schedule!.id)),
   );
   const allEventGuests = data.map((record) => record.event_guests);
   const response = allScheduleIds.map((id) => {
-    const currentSchedule = data.find((d) => d.schedule.id === id)?.schedule;
+    const currentSchedule = data.find((d) => d.schedule!.id === id)?.schedule;
+    const currentScheduleGuests = allEventGuests.filter(
+      (guests) => guests?.eventId === id,
+    );
     if (currentSchedule) {
       return {
         ...currentSchedule,
-        eventGuests: allEventGuests.filter((guests) => guests.eventId === id),
+        eventGuests: currentScheduleGuests,
       };
     }
   });
+  return response.reverse();
+}
+
+export async function getEventById(scheduleId: number) {
+  const data = await db
+    .select()
+    .from(scheduleTable)
+    .where(eq(scheduleTable.id, scheduleId))
+    .rightJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id));
+  const response = {
+    ...data[0].schedule,
+    eventGuest: data.map((d) => d.event_guests),
+  };
   return response;
+}
+
+export async function deleteEventById(scheduleId: number) {
+  await db.delete(scheduleTable).where(eq(scheduleTable.id, scheduleId));
+  return true;
 }

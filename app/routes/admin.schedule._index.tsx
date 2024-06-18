@@ -1,79 +1,99 @@
+import ScheduleLoader from "@/components/ScheduleLoader";
 import Button from "@/components/ui/button";
-import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
-import { getEventById } from "@/db/queries";
 import { ALL_DEPARTMENTS } from "@/static/admin.schedule";
 import { requireAdminCookie } from "@/utils/auth";
 import { MultiSelect } from "@mantine/core";
-import { LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Link, useFetcher, useLoaderData, useParams } from "@remix-run/react";
-import { BiChevronLeft } from "react-icons/bi";
+import { ActionFunctionArgs, MetaFunction, defer, json } from "@remix-run/node";
+import { Await, Link, useFetcher, useLoaderData } from "@remix-run/react";
+import { Suspense } from "react";
+import { BiPencil } from "react-icons/bi";
 import { BsPlus } from "react-icons/bs";
-import { RiErrorWarningLine } from "react-icons/ri";
+import { IoMdTrash } from "react-icons/io";
+import { CgLink } from "react-icons/cg";
+import { CiCalendarDate } from "react-icons/ci";
+import { MdOutlineArrowOutward } from "react-icons/md";
+import { LoaderFunctionArgs } from "react-router";
+import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
+import { createObjectFromFormData } from "@/utils";
+import { EventDetails, createEvent, getAllEvents } from "@/db/queries";
+import { EventDetailsErrorType, validateEventData } from "@/utils/validate";
+import { toast } from "react-toastify";
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export const meta: MetaFunction = () => {
+  return [{ title: "Freshers portal - Orientation | Sairam Freshers" }];
+};
+
+export async function loader({ request }: LoaderFunctionArgs) {
   await requireAdminCookie(request);
-  type ScheduleEditLoaderResponse = Partial<
-    { orientationData: Awaited<ReturnType<typeof getEventById>> } & {
-      error: string;
-    }
-  >;
+  const orientationData = getAllEvents();
+  return defer({ orientationData });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const user = await requireAdminCookie(request);
+  type EventDetailsResponse = {
+    error?: EventDetailsErrorType;
+    message?: string;
+  };
   try {
-    const scheduleId = parseInt(params.scheduleId!);
-    if (!scheduleId) {
-      return redirect("/admin/schedule");
+    const data = await request.formData();
+    const dataObject = createObjectFromFormData(
+      data,
+    ) as unknown as EventDetails;
+    console.log("🚀 dataObject:", dataObject);
+
+    const validation = validateEventData(dataObject);
+
+    if (Object.keys(validation).length > 0) {
+      return json({ error: validation } as EventDetailsResponse);
     }
-    const orientationData = await getEventById(scheduleId);
-    return json({ orientationData } as ScheduleEditLoaderResponse);
-  } catch (error) {
-    console.log("🚀 ~ loader ~ error:", error);
+
+    const response = await createEvent(user.userId as string, dataObject);
+    if (response !== "data") {
+      throw new Error("Couldn't save in DB!");
+    }
+
     return json({
-      error: "Invalid schedule ID!",
-    } as ScheduleEditLoaderResponse);
+      message: "Event created successfully!",
+    } as EventDetailsResponse);
+  } catch (error) {
+    console.log("🚀 ~ action ~ error:", error);
+    return json({
+      error: { general: "Server error in creating event!" },
+    } as EventDetailsResponse);
   }
 }
 
-function ScheduleEditPage() {
-  const { scheduleId } = useParams();
-  const scheduleInfo = useLoaderData<typeof loader>();
-  console.log("🚀 ~ ScheduleEditPage ~ orientationData:", scheduleInfo);
-
+function SchedulePage() {
+  const { orientationData } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const fetcherData = fetcher.data!; // so hard to get types for this :(
+
   const isDisabled = fetcher.state === "submitting";
 
-  console.log(
-    scheduleInfo.orientationData?.eventGuest?.map(
-      (guest) => guest.guestName ?? null,
-    ),
-  );
+  // @ts-expect-error type can't be created for fetcher.data
+  if (fetcherData?.message) {
+    // @ts-expect-error type can't be created for fetcher.data
+    toast.success(fetcherData.message);
+    // @ts-expect-error type can't be created for fetcher.data
+    fetcherData.message = undefined;
+  }
 
-  if (scheduleInfo.error) {
-    return (
-      <div className="flex w-full flex-col gap-5">
-        <Link
-          to={"/admin/schedule"}
-          className="flex w-fit items-center text-blue-500"
-        >
-          <BiChevronLeft /> Back
-        </Link>
-        <h1 className="flex w-full items-center gap-2 rounded-sm bg-red-50 p-4 text-xl font-semibold text-red-400">
-          <RiErrorWarningLine size={32} color="red" />
-          This schedule ID does not exist. Please check URL or go back and
-          select another schedule
-        </h1>
-      </div>
-    );
+  // @ts-expect-error type can't be created for fetcher.data
+  if (fetcherData && typeof fetcherData.error !== "undefined") {
+    // @ts-expect-error type can't be created for fetcher.data
+    Object.keys(fetcherData.error).forEach((err) => {
+      // @ts-expect-error type can't be created for fetcher.data
+      toast.error(fetcherData.error[err as keyof typeof fetcherData.error]);
+    });
+    // @ts-expect-error type can't be created for fetcher.data
+    fetcherData.error = undefined;
   }
 
   return (
     <div className="flex w-full flex-col gap-5">
-      <Link
-        to={"/admin/schedule"}
-        className="flex w-fit items-center text-blue-500"
-      >
-        <BiChevronLeft /> Back
-      </Link>
       <h1 className="text-2xl font-semibold">
-        Edit meeting schedule (Schedule ID: {scheduleId})
+        Create a new meeting or event schedule
       </h1>
       <fetcher.Form
         method="POST"
@@ -95,7 +115,6 @@ function ScheduleEditPage() {
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
               required
-              defaultValue={scheduleInfo.orientationData?.eventName ?? ""}
               name="eventName"
             />
           </div>
@@ -108,7 +127,6 @@ function ScheduleEditPage() {
               id="eventTiming"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="datetime-local"
-              defaultValue={scheduleInfo.orientationData?.eventTiming ?? ""}
               name="eventTiming"
             />
           </div>
@@ -123,7 +141,6 @@ function ScheduleEditPage() {
               placeholder="Event meeting link"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="url"
-              defaultValue={scheduleInfo.orientationData?.eventLink ?? ""}
               name="eventLink"
             />
           </div>
@@ -136,9 +153,6 @@ function ScheduleEditPage() {
               placeholder="Event meeting link"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="url"
-              defaultValue={
-                scheduleInfo.orientationData?.eventFeedbackLink ?? ""
-              }
               name="eventFeedbackLink"
             />
           </div>
@@ -152,7 +166,6 @@ function ScheduleEditPage() {
             id="eventDescription"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             required
-            defaultValue={scheduleInfo.orientationData?.eventDescription ?? ""}
             name="eventDescription"
           />
         </div>
@@ -169,7 +182,6 @@ function ScheduleEditPage() {
               type="text"
               required
               name="eventConductor"
-              defaultValue={scheduleInfo.orientationData?.eventConductor ?? ""}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -186,9 +198,6 @@ function ScheduleEditPage() {
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
               required
-              defaultValue={
-                scheduleInfo.orientationData?.eventConductorContact ?? ""
-              }
               name="eventConductorContact"
             />
           </div>
@@ -205,9 +214,6 @@ function ScheduleEditPage() {
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
               name="eventCoordinator"
-              defaultValue={
-                scheduleInfo.orientationData?.eventCoordinator ?? ""
-              }
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -223,9 +229,6 @@ function ScheduleEditPage() {
               placeholder="Event coordinator's email or mobile"
               className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
               type="text"
-              defaultValue={
-                scheduleInfo.orientationData?.eventCoordinatorContact ?? ""
-              }
               name="eventCoordinatorContact"
             />
           </div>
@@ -241,7 +244,6 @@ function ScheduleEditPage() {
               }}
               placeholder="Choose department"
               data={ALL_DEPARTMENTS}
-              defaultValue={scheduleInfo.orientationData?.eventDept?.split(",")}
               required={true}
               name="eventDept"
               styles={{
@@ -263,23 +265,86 @@ function ScheduleEditPage() {
             <label htmlFor="eventGuest" className="text-sm font-normal">
               Event Guests{" "}
             </label>
-            <MultiSelectCreatable
-              inputFieldName="eventGuest"
-              // @ts-expect-error summa oru saaku smh
-              defaultValues={
-                scheduleInfo.orientationData?.eventGuest?.map(
-                  (guest) => guest.guestName ?? null,
-                ) ?? []
-              }
-            />
+            <MultiSelectCreatable inputFieldName="eventGuest" />
           </div>
         </div>
         <div className="flex w-full items-center justify-end">
           <Button label="Submit" className="w-fit px-8" disabled={isDisabled} />
         </div>
       </fetcher.Form>
+
+      <div className="flex w-full flex-col gap-2">
+        <h1 className="flex items-center text-2xl font-semibold">
+          <CiCalendarDate />
+          Scheduled events & meetings
+        </h1>
+        <Suspense fallback={<ScheduleLoader />}>
+          <Await resolve={orientationData}>
+            {(orientationData) =>
+              orientationData.map((orientation) => (
+                <div
+                  key={orientation.id}
+                  className="flex gap-4 rounded-md bg-white p-2 outline outline-1 outline-blue-300/60"
+                >
+                  <div className="grid aspect-square place-items-center rounded-md bg-card p-3 px-5 md:p-4 md:px-7">
+                    <CgLink size={28} color="#228be6" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {/* date */}
+                    <p className="flex items-center gap-1 text-xs text-gray-600 md:text-sm">
+                      <CiCalendarDate size={16} color="#228be6" />
+                      {orientation.eventTiming
+                        ? new Date(orientation.eventTiming).toLocaleString(
+                            undefined,
+                            {
+                              timeZone: "Asia/Calcutta",
+                            },
+                          )
+                        : "Yet to be published"}
+                    </p>
+                    {/* title */}
+                    <h3 className="text-sm md:text-base">
+                      {orientation.eventName} <br />
+                    </h3>
+                    {/* link */}
+                    <Link
+                      to={orientation.eventLink ? orientation.eventLink : "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-sm text-blue-400 md:text-base"
+                    >
+                      Open <MdOutlineArrowOutward />
+                    </Link>
+                  </div>
+                  <div className="ml-auto flex flex-col items-center gap-2">
+                    <Button
+                      className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
+                      to={`${orientation.id}/edit`}
+                      label={
+                        <>
+                          <BiPencil />
+                          Edit
+                        </>
+                      }
+                    ></Button>
+                    <Button
+                      className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-1 text-red-500"
+                      label={
+                        <>
+                          <IoMdTrash />
+                          Delete
+                        </>
+                      }
+                    ></Button>
+                  </div>
+                </div>
+              ))
+            }
+          </Await>
+        </Suspense>
+      </div>
     </div>
   );
 }
 
-export default ScheduleEditPage;
+export default SchedulePage;
