@@ -40,12 +40,6 @@ function ScheduleEditPage() {
   const fetcher = useFetcher();
   const isDisabled = fetcher.state === "submitting";
 
-  console.log(
-    scheduleInfo.orientationData?.eventGuest?.map(
-      (guest) => guest.guestName ?? null,
-    ),
-  );
-
   if (scheduleInfo.error) {
     return (
       <div className="flex w-full flex-col gap-5">
@@ -265,11 +259,12 @@ function ScheduleEditPage() {
             </label>
             <MultiSelectCreatable
               inputFieldName="eventGuest"
-              // @ts-expect-error summa oru saaku smh
               defaultValues={
-                scheduleInfo.orientationData?.eventGuest?.map(
-                  (guest) => guest.guestName ?? null,
-                ) ?? []
+                !scheduleInfo.orientationData?.eventGuest[0]
+                  ? []
+                  : scheduleInfo.orientationData?.eventGuest.map(
+                      (guest) => guest?.guestName ?? "",
+                    )
               }
             />
           </div>

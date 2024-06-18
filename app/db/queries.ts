@@ -441,11 +441,15 @@ export async function getAllEvents() {
   const data = await db
     .select()
     .from(scheduleTable)
-    .fullJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id)); // changed from rightJoin or innerJoin to  fullJoin, cus whichever schedule table did not have any guests, were neglected
-  console.log("🚀 ~ getAllEvents ~ data:", data);
-  const allScheduleIds = Array.from(
-    new Set(data.map((record) => record.schedule!.id)),
-  );
+    .fullJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id))
+    .orderBy(scheduleTable.createdAt); // changed from rightJoin or innerJoin to  fullJoin, cus whichever schedule table did not have any guests, were neglected
+
+  const allScheduleIds: number[] = [];
+  data.forEach((record) => {
+    if (!allScheduleIds.includes(record.schedule!.id))
+      allScheduleIds.push(record.schedule!.id);
+  });
+
   const allEventGuests = data.map((record) => record.event_guests);
   const response = allScheduleIds.map((id) => {
     const currentSchedule = data.find((d) => d.schedule!.id === id)?.schedule;
@@ -467,7 +471,7 @@ export async function getEventById(scheduleId: number) {
     .select()
     .from(scheduleTable)
     .where(eq(scheduleTable.id, scheduleId))
-    .rightJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id));
+    .fullJoin(eventGuests, eq(eventGuests.eventId, scheduleTable.id));
   const response = {
     ...data[0].schedule,
     eventGuest: data.map((d) => d.event_guests),

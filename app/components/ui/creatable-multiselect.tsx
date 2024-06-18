@@ -10,7 +10,7 @@ import {
 
 export function MultiSelectCreatable({
   inputFieldName,
-  defaultValues = []
+  defaultValues = [],
 }: {
   inputFieldName: string;
   defaultValues?: string[];
