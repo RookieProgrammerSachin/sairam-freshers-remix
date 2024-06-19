@@ -7,6 +7,8 @@ type ButtonProps = {
   className?: string;
   disabledComponent?: ReactNode;
   label: string | ReactNode;
+  name?: string;
+  value?: string;
   to?: string | undefined;
 };
 
@@ -15,6 +17,8 @@ function Button({
   className,
   disabledComponent = <span className="loader"></span>,
   label,
+  name,
+  value,
   to = undefined,
 }: ButtonProps) {
   return to ? (
@@ -42,6 +46,8 @@ function Button({
         } grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`,
         className,
       )}
+      name={name}
+      value={value}
     >
       {disabled ? disabledComponent : label}
     </button>

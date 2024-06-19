@@ -15,7 +15,12 @@ import { MdOutlineArrowOutward } from "react-icons/md";
 import { LoaderFunctionArgs } from "react-router";
 import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
 import { createObjectFromFormData } from "@/utils";
-import { EventDetails, createEvent, getAllEvents } from "@/db/queries";
+import {
+  EventDetails,
+  createEvent,
+  deleteEventById,
+  getAllEvents,
+} from "@/db/queries";
 import { EventDetailsErrorType, validateEventData } from "@/utils/validate";
 import { toast } from "react-toastify";
 
@@ -37,25 +42,40 @@ export async function action({ request }: ActionFunctionArgs) {
   };
   try {
     const data = await request.formData();
-    const dataObject = createObjectFromFormData(
-      data,
-    ) as unknown as EventDetails;
-    console.log("🚀 dataObject:", dataObject);
+    console.log("🚀 ~ action ~ data:", data);
 
-    const validation = validateEventData(dataObject);
+    if (data.get("intent") === "create") {
+      const dataObject = createObjectFromFormData(
+        data,
+      ) as unknown as EventDetails;
+      console.log("🚀 dataObject:", dataObject);
 
-    if (Object.keys(validation).length > 0) {
-      return json({ error: validation } as EventDetailsResponse);
+      const validation = validateEventData(dataObject);
+
+      if (Object.keys(validation).length > 0) {
+        return json({ error: validation } as EventDetailsResponse);
+      }
+
+      const response = await createEvent(user.userId as string, dataObject);
+      if (response !== "data") {
+        throw new Error("Couldn't save in DB!");
+      }
+
+      return json({
+        message: "Event created successfully!",
+      } as EventDetailsResponse);
+    } else if (data.get("intent") === "delete") {
+      const eventId = String(data.get("eventId"));
+      if (!parseInt(eventId)) {
+        return json({
+          error: { general: "Invalid event id" },
+        } as EventDetailsResponse);
+      }
+      await deleteEventById(parseInt(eventId));
+      return json({ message: `Deleted event ${eventId} successfully!` });
+    } else {
+      return json({ error: { general: "Incorrect method. Contact admin!" } });
     }
-
-    const response = await createEvent(user.userId as string, dataObject);
-    if (response !== "data") {
-      throw new Error("Couldn't save in DB!");
-    }
-
-    return json({
-      message: "Event created successfully!",
-    } as EventDetailsResponse);
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
     return json({
@@ -269,7 +289,13 @@ function SchedulePage() {
           </div>
         </div>
         <div className="flex w-full items-center justify-end">
-          <Button label="Submit" className="w-fit px-8" disabled={isDisabled} />
+          <Button
+            label="Submit"
+            name="intent"
+            value="create"
+            className="w-fit px-8"
+            disabled={isDisabled}
+          />
         </div>
       </fetcher.Form>
 
@@ -282,68 +308,79 @@ function SchedulePage() {
           <Await resolve={orientationData}>
             {(orientationData) =>
               orientationData.map((orientation) => (
-                <div
-                  key={orientation.id}
-                  className="flex gap-4 rounded-md bg-white p-2 outline outline-1 outline-blue-300/60"
-                >
-                  <div className="grid aspect-square place-items-center rounded-md bg-card p-3 px-5 md:p-4 md:px-7">
-                    <CgLink size={28} color="#228be6" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    {/* date */}
-                    <p className="flex items-center gap-1 text-xs text-gray-600 md:text-sm">
-                      <CiCalendarDate size={16} color="#228be6" />
-                      {orientation.eventTiming
-                        ? new Date(orientation.eventTiming).toLocaleString(
-                            undefined,
-                            {
-                              timeZone: "Asia/Calcutta",
-                            },
-                          )
-                        : "Yet to be published"}
-                    </p>
-                    {/* title */}
-                    <h3 className="text-sm md:text-base">
-                      {orientation.eventName} <br />
-                    </h3>
-                    {/* link */}
-                    <Link
-                      to={orientation.eventLink ? orientation.eventLink : "#"}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-sm text-blue-400 md:text-base"
-                    >
-                      Open <MdOutlineArrowOutward />
-                    </Link>
-                  </div>
-                  <div className="ml-auto flex flex-col items-center gap-2">
-                    <Button
-                      className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
-                      to={`${orientation.id}/edit`}
-                      label={
-                        <>
-                          <BiPencil />
-                          Edit
-                        </>
-                      }
-                    ></Button>
-                    <Button
-                      className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-1 text-red-500"
-                      label={
-                        <>
-                          <IoMdTrash />
-                          Delete
-                        </>
-                      }
-                    ></Button>
-                  </div>
-                </div>
+                <ScheduleCard orientation={orientation} key={orientation.id} />
               ))
             }
           </Await>
         </Suspense>
       </div>
     </div>
+  );
+}
+
+function ScheduleCard({ orientation }) {
+  const fetcher = useFetcher();
+  const isDeleting = fetcher.state !== "idle";
+
+  return (
+    <fetcher.Form
+      className="flex gap-4 rounded-md bg-white p-2 outline outline-1 outline-blue-300/60"
+      method="POST"
+    >
+      <div className="grid aspect-square place-items-center rounded-md bg-card p-3 px-5 md:p-4 md:px-7">
+        <CgLink size={28} color="#228be6" />
+      </div>
+      <div className="flex flex-col gap-1">
+        {/* date */}
+        <p className="flex items-center gap-1 text-xs text-gray-600 md:text-sm">
+          <CiCalendarDate size={16} color="#228be6" />
+          {orientation.eventTiming
+            ? new Date(orientation.eventTiming).toLocaleString(undefined, {
+                timeZone: "Asia/Calcutta",
+              })
+            : "Yet to be published"}
+        </p>
+        {/* title */}
+        <h3 className="text-sm md:text-base">
+          {orientation.eventName} <br />
+        </h3>
+        {/* link */}
+        <Link
+          to={orientation.eventLink ? orientation.eventLink : "#"}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1 text-sm text-blue-400 md:text-base"
+        >
+          Open <MdOutlineArrowOutward />
+        </Link>
+      </div>
+      <div className="ml-auto flex flex-col items-center gap-2">
+        <Button
+          className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
+          to={`${orientation.id}/edit`}
+          label={
+            <>
+              <BiPencil />
+              Edit
+            </>
+          }
+          disabled={isDeleting}
+        ></Button>
+        <Button
+          className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-1 text-red-500"
+          label={
+            <>
+              <IoMdTrash />
+              Delete
+            </>
+          }
+          disabled={isDeleting}
+          name="intent"
+          value={"delete"}
+        ></Button>
+      </div>
+      <input type="hidden" name="eventId" value={orientation.id} />
+    </fetcher.Form>
   );
 }
 
