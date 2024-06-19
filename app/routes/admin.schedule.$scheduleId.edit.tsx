@@ -1,14 +1,32 @@
 import Button from "@/components/ui/button";
 import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
-import { getEventById } from "@/db/queries";
+import {
+  EventDetails,
+  createEvent,
+  getEventById,
+  updateEvent,
+} from "@/db/queries";
 import { ALL_DEPARTMENTS } from "@/static/admin.schedule";
+import { createObjectFromFormData, wait } from "@/utils";
 import { requireAdminCookie } from "@/utils/auth";
+import { EventDetailsErrorType, validateEventData } from "@/utils/validate";
 import { MultiSelect } from "@mantine/core";
-import { LoaderFunctionArgs, json, redirect } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+  json,
+  redirect,
+} from "@remix-run/node";
 import { Link, useFetcher, useLoaderData, useParams } from "@remix-run/react";
 import { BiChevronLeft } from "react-icons/bi";
 import { BsPlus } from "react-icons/bs";
 import { RiErrorWarningLine } from "react-icons/ri";
+import { toast } from "react-toastify";
+
+export const meta: MetaFunction = () => {
+  return [{ title: "Edit event details | Sairam Freshers Admin" }];
+};
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireAdminCookie(request);
@@ -32,6 +50,44 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 }
 
+export async function action({ request, params }: ActionFunctionArgs) {
+  type EventDetailsResponse = {
+    error?: EventDetailsErrorType;
+    message?: string;
+  };
+  await wait(2000);
+  await requireAdminCookie(request);
+  const scheduleId = parseInt(params.scheduleId!);
+  if (!scheduleId) {
+    return redirect("/admin/schedule");
+  }
+  try {
+    const data = await request.formData();
+    const dataObject = createObjectFromFormData(
+      data,
+    ) as unknown as EventDetails;
+    console.log("🚀 dataObject:", dataObject);
+
+    const validation = validateEventData(dataObject);
+
+    if (Object.keys(validation).length > 0) {
+      return json({ error: validation } as EventDetailsResponse);
+    }
+
+    const response = await updateEvent(scheduleId, dataObject);
+    if (response.length !== 1) {
+      throw new Error("Couldn't update in DB!");
+    }
+
+    return json({
+      message: "Event updated successfully!",
+    } as EventDetailsResponse);
+  } catch (error) {
+    console.log("🚀 ~ action ~ error:", error);
+    return json({ error: { general: "Server error in updating event" } });
+  }
+}
+
 function ScheduleEditPage() {
   const { scheduleId } = useParams();
   const scheduleInfo = useLoaderData<typeof loader>();
@@ -39,6 +95,27 @@ function ScheduleEditPage() {
 
   const fetcher = useFetcher();
   const isDisabled = fetcher.state === "submitting";
+
+  // @ts-expect-error type can't be created for fetcher.data
+  if (fetcher.data?.message) {
+    // @ts-expect-error type can't be created for fetcher.data
+    toast.success(fetcher.data.message);
+    // @ts-expect-error type can't be created for fetcher.data
+    fetcher.data.message = undefined;
+  }
+
+  // @ts-expect-error type can't be created for fetcher.data
+  if (fetcher.data && typeof fetcher.data.error !== "undefined") {
+    // @ts-expect-error type can't be created for fetcher.data
+    Object.keys(fetcher.data.error).forEach((err) => {
+      toast.error(
+        // @ts-expect-error type can't be created for fetcher.data
+        fetcher.data.error[err as keyof typeof fetcher.data.error],
+      );
+    });
+    // @ts-expect-error type can't be created for fetcher.data
+    fetcher.data.error = undefined;
+  }
 
   if (scheduleInfo.error) {
     return (

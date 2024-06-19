@@ -44,8 +44,12 @@ export function MultiSelectCreatable({
   const handleValueRemove = (val: string) =>
     setValue((current) => current.filter((v) => v !== val));
 
-  const values = value.map((item) => (
-    <Pill key={item} withRemoveButton onRemove={() => handleValueRemove(item)}>
+  const values = value.map((item, i) => (
+    <Pill
+      key={`${item}-${i}`}
+      withRemoveButton
+      onRemove={() => handleValueRemove(item)}
+    >
       {item}
     </Pill>
   ));

@@ -483,3 +483,38 @@ export async function deleteEventById(scheduleId: number) {
   await db.delete(scheduleTable).where(eq(scheduleTable.id, scheduleId));
   return true;
 }
+
+export async function updateEvent(eventId: number, eventData: EventDetails) {
+  const data = await db
+    .update(scheduleTable)
+    .set({
+      eventName: eventData.eventName,
+      eventConductor: eventData.eventConductor,
+      eventConductorContact: eventData.eventConductorContact,
+      eventCoordinator:
+        eventData.eventCoordinator === "" ? null : eventData.eventCoordinator,
+      eventCoordinatorContact:
+        eventData.eventCoordinatorContact === ""
+          ? null
+          : eventData.eventCoordinatorContact,
+      eventDept: eventData.eventDept,
+      eventDescription: eventData.eventDescription,
+      eventFeedbackLink:
+        eventData.eventFeedbackLink === "" ? null : eventData.eventFeedbackLink,
+      eventLink: eventData.eventLink === "" ? null : eventData.eventLink,
+      eventTiming: eventData.eventTiming === "" ? null : eventData.eventTiming,
+    })
+    .where(eq(scheduleTable.id, eventId))
+    .returning();
+  const guests = eventData.eventGuest;
+  if (guests.trim() !== "") {
+    await db.delete(eventGuests).where(eq(eventGuests.eventId, data[0].id));
+    await db.insert(eventGuests).values(
+      guests.split(",").map((guest) => ({
+        guestName: guest,
+        eventId: data[0].id,
+      })),
+    );
+  }
+  return data;
+}
