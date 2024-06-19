@@ -5,7 +5,7 @@ import { requireAdminCookie } from "@/utils/auth";
 import { MultiSelect } from "@mantine/core";
 import { ActionFunctionArgs, MetaFunction, defer, json } from "@remix-run/node";
 import { Await, Link, useFetcher, useLoaderData } from "@remix-run/react";
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
 import { BiPencil } from "react-icons/bi";
 import { BsPlus } from "react-icons/bs";
 import { IoMdTrash } from "react-icons/io";
@@ -84,12 +84,19 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
+/** Initially planned to have separate schedulecard compoent, with each component having a fetcher and letting it handle network requests
+ * but i was not able to get the type for orientation data from the loader, as Suspense Await component gave it for me
+ * hence tried using another fetcher but with different keys to each schedule card directly and voila! it worked!
+ */
 function SchedulePage() {
   const { orientationData } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const createEventForm = useRef(null);
+  const deleteFetcher = useFetcher();
   const fetcherData = fetcher.data!; // so hard to get types for this :(
 
   const isDisabled = fetcher.state === "submitting";
+  const isDeleting = deleteFetcher.state !== "idle";
 
   // @ts-expect-error type can't be created for fetcher.data
   if (fetcherData?.message) {
@@ -97,6 +104,8 @@ function SchedulePage() {
     toast.success(fetcherData.message);
     // @ts-expect-error type can't be created for fetcher.data
     fetcherData.message = undefined;
+    // @ts-expect-error type can't be created for fetcher.data
+    createEventForm.current?.reset();
   }
 
   // @ts-expect-error type can't be created for fetcher.data
@@ -110,6 +119,27 @@ function SchedulePage() {
     fetcherData.error = undefined;
   }
 
+  // @ts-expect-error type can't be created for fetcher.data
+  if (deleteFetcher.data?.message) {
+    // @ts-expect-error type can't be created for fetcher.data
+    toast.success(deleteFetcher.data.message);
+    // @ts-expect-error type can't be created for fetcher.data
+    deleteFetcher.data.message = undefined;
+  }
+
+  // @ts-expect-error type can't be created for fetcher.data
+  if (deleteFetcher.data && typeof deleteFetcher.data.error !== "undefined") {
+    // @ts-expect-error type can't be created for fetcher.data
+    Object.keys(deleteFetcher.data.error).forEach((err) => {
+      toast.error(
+        // @ts-expect-error type can't be created for fetcher.data
+        deleteFetcher.data.error[err as keyof typeof deleteFetcher.data.error],
+      );
+    });
+    // @ts-expect-error type can't be created for fetcher.data
+    deleteFetcher.data.error = undefined;
+  }
+
   return (
     <div className="flex w-full flex-col gap-5">
       <h1 className="text-2xl font-semibold">
@@ -118,6 +148,7 @@ function SchedulePage() {
       <fetcher.Form
         method="POST"
         className="flex flex-col gap-4 rounded-md border-[3px] border-dashed bg-primary p-4"
+        ref={createEventForm}
       >
         <h1 className="flex items-center text-2xl font-semibold">
           <BsPlus />
@@ -308,79 +339,74 @@ function SchedulePage() {
           <Await resolve={orientationData}>
             {(orientationData) =>
               orientationData.map((orientation) => (
-                <ScheduleCard orientation={orientation} key={orientation.id} />
+                <deleteFetcher.Form
+                  className="flex gap-4 rounded-md bg-white p-2 outline outline-1 outline-blue-300/60"
+                  method="POST"
+                  key={orientation.id}
+                >
+                  <div className="grid aspect-square place-items-center rounded-md bg-card p-3 px-5 md:p-4 md:px-7">
+                    <CgLink size={28} color="#228be6" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {/* date */}
+                    <p className="flex items-center gap-1 text-xs text-gray-600 md:text-sm">
+                      <CiCalendarDate size={16} color="#228be6" />
+                      {orientation.eventTiming
+                        ? new Date(orientation.eventTiming).toLocaleString(
+                            undefined,
+                            {
+                              timeZone: "Asia/Calcutta",
+                            },
+                          )
+                        : "Yet to be published"}
+                    </p>
+                    {/* title */}
+                    <h3 className="text-sm md:text-base">
+                      {orientation.eventName} <br />
+                    </h3>
+                    {/* link */}
+                    <Link
+                      to={orientation.eventLink ? orientation.eventLink : "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-sm text-blue-400 md:text-base"
+                    >
+                      Open <MdOutlineArrowOutward />
+                    </Link>
+                  </div>
+                  <div className="ml-auto flex flex-col items-center gap-2">
+                    <Button
+                      className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
+                      to={`${orientation.id}/edit`}
+                      label={
+                        <>
+                          <BiPencil />
+                          Edit
+                        </>
+                      }
+                      disabled={isDeleting}
+                    ></Button>
+                    <Button
+                      className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-1 text-red-500"
+                      label={
+                        <>
+                          <IoMdTrash />
+                          Delete
+                        </>
+                      }
+                      disabled={isDeleting}
+                      name="intent"
+                      value={"delete"}
+                    ></Button>
+                  </div>
+                  <input type="hidden" name="eventId" value={orientation.id} />
+                </deleteFetcher.Form>
               ))
             }
           </Await>
         </Suspense>
       </div>
     </div>
-  );
-}
-
-function ScheduleCard({ orientation }) {
-  const fetcher = useFetcher();
-  const isDeleting = fetcher.state !== "idle";
-
-  return (
-    <fetcher.Form
-      className="flex gap-4 rounded-md bg-white p-2 outline outline-1 outline-blue-300/60"
-      method="POST"
-    >
-      <div className="grid aspect-square place-items-center rounded-md bg-card p-3 px-5 md:p-4 md:px-7">
-        <CgLink size={28} color="#228be6" />
-      </div>
-      <div className="flex flex-col gap-1">
-        {/* date */}
-        <p className="flex items-center gap-1 text-xs text-gray-600 md:text-sm">
-          <CiCalendarDate size={16} color="#228be6" />
-          {orientation.eventTiming
-            ? new Date(orientation.eventTiming).toLocaleString(undefined, {
-                timeZone: "Asia/Calcutta",
-              })
-            : "Yet to be published"}
-        </p>
-        {/* title */}
-        <h3 className="text-sm md:text-base">
-          {orientation.eventName} <br />
-        </h3>
-        {/* link */}
-        <Link
-          to={orientation.eventLink ? orientation.eventLink : "#"}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1 text-sm text-blue-400 md:text-base"
-        >
-          Open <MdOutlineArrowOutward />
-        </Link>
-      </div>
-      <div className="ml-auto flex flex-col items-center gap-2">
-        <Button
-          className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
-          to={`${orientation.id}/edit`}
-          label={
-            <>
-              <BiPencil />
-              Edit
-            </>
-          }
-          disabled={isDeleting}
-        ></Button>
-        <Button
-          className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-1 text-red-500"
-          label={
-            <>
-              <IoMdTrash />
-              Delete
-            </>
-          }
-          disabled={isDeleting}
-          name="intent"
-          value={"delete"}
-        ></Button>
-      </div>
-      <input type="hidden" name="eventId" value={orientation.id} />
-    </fetcher.Form>
   );
 }
 
