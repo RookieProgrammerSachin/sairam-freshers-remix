@@ -102,11 +102,11 @@ async function admin_setUserDates() {
 /** Add admin user */
 async function admin_addAdminUser() {
   await db.insert(userTable).values({
-    applicationNo: "1",
-    emailId: "brindha.it@sairam.edu.in",
-    mobile: "8754582225",
-    name: "Brindha Devi",
-    password: crypto.createHash("sha256").update("freshers@123").digest("hex"),
+    applicationNo: "someid",
+    emailId: "somemail",
+    mobile: "99999999",
+    name: "name",
+    password: crypto.createHash("sha256").update("password").digest("hex"),
     role: "ROLE_ADMIN",
   });
 }

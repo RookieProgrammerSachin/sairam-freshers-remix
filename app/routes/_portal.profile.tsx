@@ -29,6 +29,7 @@ import {
 } from "@/db/queries";
 import { ProfileFormErrorType, validateProfileData } from "@/utils/validate";
 import { nanoid } from "nanoid";
+import { LuUploadCloud } from "react-icons/lu";
 
 export type SubmitResponseType = {
   message?: string;
@@ -129,7 +130,6 @@ export async function action({ request }: ActionFunctionArgs) {
     const dataObject = createObjectFromFormData(
       data,
     ) as unknown as ProfileFormSubmitType;
-    console.log("🚀 ~ action ~ dataObject:", dataObject);
 
     const validation = validateProfileData(dataObject);
     if (Object.keys(validation).length > 0)
@@ -260,7 +260,6 @@ export async function action({ request }: ActionFunctionArgs) {
 function Page() {
   const submitDataAction = useActionData<typeof action>();
   const profileDetails = useLoaderData<typeof loader>();
-  console.log("🚀 ~ Page ~ profileDetails:", profileDetails);
 
   const [fillDummy, setFillDummy] = useState(false);
   const currentAddressContainer = useRef<HTMLDivElement>(null);
@@ -270,6 +269,7 @@ function Page() {
   useEffect(() => {
     Object.keys(profileDetails).forEach((data) => {
       const elem = document.querySelector<HTMLInputElement>(
+        // @ts-expect-error chi!
         `input[name=${DB_TO_FORM_MAP[data]}]`,
       );
 
@@ -553,7 +553,7 @@ function Page() {
               Select State
             </option>
             {INDIAN_STATES.map((state) => {
-              if (state.id === profileDetails.currentState)
+              if (String(state.id) === String(profileDetails.currentState))
                 return (
                   <option value={state.id} key={nanoid(3)} selected>
                     {state.state}
@@ -724,13 +724,12 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
             required
             name="permanentState"
-            defaultValue={fillDummy ? "25" : "select"}
           >
             <option value="select" className="text-sm">
               Select State
             </option>
             {INDIAN_STATES.map((state) => {
-              if (state.id === profileDetails.permanentState)
+              if (String(state.id) === String(profileDetails.permanentState))
                 return (
                   <option value={state.id} key={nanoid(3)} selected>
                     {state.state}
@@ -1271,21 +1270,22 @@ function Page() {
               className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
               required
               name="fatherState"
-              defaultValue={fillDummy ? "25" : "select"}
             >
               <option value="select" className="text-sm">
                 Select State
               </option>
               {INDIAN_STATES.map((state) => {
-                if (state.id === profileDetails.fatherParentState)
+                if (
+                  String(state.id) === String(profileDetails.fatherParentState)
+                )
                   return (
-                    <option value={state.id} key={nanoid(3)} selected>
+                    <option value={String(state.id)} key={nanoid(3)} selected>
                       {state.state}
                     </option>
                   );
                 else
                   return (
-                    <option value={state.id} key={nanoid(3)}>
+                    <option value={String(state.id)} key={nanoid(3)}>
                       {state.state}
                     </option>
                   );
@@ -1513,13 +1513,14 @@ function Page() {
               className="rounded-md bg-white px-3 py-1.5 text-[15px] outline outline-1 outline-gray-200 focus:outline-gray-300"
               required
               name="motherState"
-              defaultValue={fillDummy ? "25" : "select"}
             >
               <option value="select" className="text-sm">
                 Select State
               </option>
               {INDIAN_STATES.map((state) => {
-                if (state.id === profileDetails.motherParentState)
+                if (
+                  String(state.id) === String(profileDetails.motherParentState)
+                )
                   return (
                     <option value={state.id} key={nanoid(3)} selected>
                       {state.state}
@@ -1588,29 +1589,41 @@ function Page() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-1">
-          <label htmlFor="parentSignature" className="text-sm font-normal">
+          <label
+            htmlFor="parentSignature"
+            className="flex flex-col gap-3 text-sm font-normal"
+          >
             Signature of the Parent
+            <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 px-3 py-1.5 placeholder:text-sm">
+              <LuUploadCloud color="#8a8a8a" />
+              <p className="text-xs text-slate-500">Upload</p>
+            </div>
           </label>
           <input
             id="parentSignature"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
+            className="hidden"
+            type="file"
             required
             name="parentSignature"
-            defaultValue={fillDummy ? "Yes2" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="candidateSignature" className="text-sm font-normal">
+          <label
+            htmlFor="candidateSignature"
+            className="flex flex-col gap-3 text-sm font-normal"
+          >
             Signature of the Candidate
+            <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 px-3 py-1.5 placeholder:text-sm">
+              <LuUploadCloud color="#8a8a8a" />
+              <p className="text-xs text-slate-500">Upload</p>
+            </div>
           </label>
           <input
             id="candidateSignature"
-            className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
-            type="text"
+            className="hidden"
+            type="file"
             required
             name="candidateSignature"
-            defaultValue={fillDummy ? "Yes" : undefined}
           />
         </div>
       </div>

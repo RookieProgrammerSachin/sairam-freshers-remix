@@ -1,9 +1,11 @@
-import { Outlet } from '@remix-run/react'
+import { Outlet } from "@remix-run/react";
 
 function ScheduleLayout() {
   return (
-    <Outlet />
-  )
+    <>
+      <Outlet />
+    </>
+  );
 }
 
-export default ScheduleLayout
+export default ScheduleLayout;

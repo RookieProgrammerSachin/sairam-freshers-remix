@@ -91,7 +91,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 function ScheduleEditPage() {
   const { scheduleId } = useParams();
   const scheduleInfo = useLoaderData<typeof loader>();
-  console.log("🚀 ~ ScheduleEditPage ~ orientationData:", scheduleInfo);
 
   const fetcher = useFetcher();
   const isDisabled = fetcher.state === "submitting";

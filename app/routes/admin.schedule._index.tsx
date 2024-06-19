@@ -25,7 +25,11 @@ import { EventDetailsErrorType, validateEventData } from "@/utils/validate";
 import { toast } from "react-toastify";
 
 export const meta: MetaFunction = () => {
-  return [{ title: "Freshers portal - Orientation | Sairam Freshers" }];
+  return [
+    {
+      title: "Schedules | Sairam Fresher's Admin",
+    },
+  ];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
