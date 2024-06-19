@@ -1,13 +1,8 @@
 import Button from "@/components/ui/button";
 import { MultiSelectCreatable } from "@/components/ui/creatable-multiselect";
-import {
-  EventDetails,
-  createEvent,
-  getEventById,
-  updateEvent,
-} from "@/db/queries";
+import { EventDetails, getEventById, updateEvent } from "@/db/queries";
 import { ALL_DEPARTMENTS } from "@/static/admin.schedule";
-import { createObjectFromFormData, wait } from "@/utils";
+import { createObjectFromFormData } from "@/utils";
 import { requireAdminCookie } from "@/utils/auth";
 import { EventDetailsErrorType, validateEventData } from "@/utils/validate";
 import { MultiSelect } from "@mantine/core";
@@ -55,7 +50,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     error?: EventDetailsErrorType;
     message?: string;
   };
-  await wait(2000);
   await requireAdminCookie(request);
   const scheduleId = parseInt(params.scheduleId!);
   if (!scheduleId) {

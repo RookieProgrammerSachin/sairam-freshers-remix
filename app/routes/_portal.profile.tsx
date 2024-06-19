@@ -116,10 +116,8 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const per = performance.now();
   const user = await requireAuthCookie(request);
   const profileDetails = await getAllProfileDetails(user.userId as string);
-  console.log(performance.now() - per);
   return profileDetails;
 }
 
@@ -261,21 +259,23 @@ function Page() {
   const submitDataAction = useActionData<typeof action>();
   const profileDetails = useLoaderData<typeof loader>();
 
-  const [fillDummy, setFillDummy] = useState(false);
+  // const [fillDummy, setFillDummy] = useState(false);
   const currentAddressContainer = useRef<HTMLDivElement>(null);
   const permanentAddressContainer = useRef<HTMLDivElement>(null);
   const gradeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    Object.keys(profileDetails).forEach((data) => {
-      const elem = document.querySelector<HTMLInputElement>(
-        // @ts-expect-error chi!
-        `input[name=${DB_TO_FORM_MAP[data]}]`,
-      );
+    if (profileDetails)
+      Object.keys(profileDetails).forEach((data) => {
+        const elem = document.querySelector<HTMLInputElement>(
+          // @ts-expect-error chi!
+          `input[name=${DB_TO_FORM_MAP[data]}]`,
+        );
 
-      if (elem)
-        elem.defaultValue = profileDetails[data as keyof typeof profileDetails];
-    });
+        if (elem)
+          elem.defaultValue =
+            profileDetails[data as keyof typeof profileDetails];
+      });
   }, [profileDetails]);
 
   if (submitDataAction?.message) {
@@ -327,9 +327,9 @@ function Page() {
     >
       {/* Personal details */}
       <h3 className="text-lg font-semibold">Personal Details</h3>
-      <button onClick={() => setFillDummy(!fillDummy)}>
+      {/* <button onClick={() => setFillDummy(!fillDummy)}>
         Fill dummy details
-      </button>
+      </button> */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-1">
           <label htmlFor="name" className="text-sm font-normal">
@@ -342,7 +342,7 @@ function Page() {
             type="text"
             required
             name="name"
-            defaultValue={fillDummy ? "Filler name" : undefined}
+            // defaultValue={fillDummy ? "Filler name" : undefined}
             autoComplete="true"
           />
         </div>
@@ -358,7 +358,7 @@ function Page() {
             type="date"
             required
             name="dob"
-            defaultValue={fillDummy ? "2006-01-01" : undefined}
+            // defaultValue={fillDummy ? "2006-01-01" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -373,7 +373,7 @@ function Page() {
             type="text"
             required
             name="motherTongue"
-            defaultValue={fillDummy ? "Some mother tongue" : undefined}
+            // defaultValue={fillDummy ? "Some mother tongue" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -388,7 +388,7 @@ function Page() {
             type="text"
             required
             name="bloodGroup"
-            defaultValue={fillDummy ? "O+" : undefined}
+            // defaultValue={fillDummy ? "O+" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -403,7 +403,7 @@ function Page() {
             type="text"
             required
             name="nationality"
-            defaultValue={fillDummy ? "Indian" : undefined}
+            // defaultValue={fillDummy ? "Indian" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -418,7 +418,7 @@ function Page() {
             type="text"
             required
             name="religion"
-            defaultValue={fillDummy ? "Modism" : undefined}
+            // defaultValue={fillDummy ? "Modism" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -434,13 +434,7 @@ function Page() {
           >
             <option value="select">Select</option>
             {COMMUNITIES.map((community, i) => {
-              console.log(
-                community === profileDetails.community,
-                profileDetails.community,
-                community,
-              );
-
-              if (community === profileDetails.community) {
+              if (community === profileDetails?.community) {
                 return (
                   <option value={community} key={nanoid(3)} selected={true}>
                     {community}
@@ -465,7 +459,7 @@ function Page() {
             id="hostelRequired"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             required
-            defaultValue={profileDetails.hostelRequired ? "yes" : "no"}
+            // defaultValue={profileDetails.hostelRequired ? "yes" : "no"}
             name="hostelRequired"
           >
             <option value="no">No</option>
@@ -489,7 +483,7 @@ function Page() {
             type="text"
             required
             name="currentAddress"
-            defaultValue={fillDummy ? "123, Some Street" : undefined}
+            // defaultValue={fillDummy ? "123, Some Street" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -504,7 +498,7 @@ function Page() {
             type="text"
             required
             name="currentArea"
-            defaultValue={fillDummy ? "Tenyampet" : undefined}
+            // defaultValue={fillDummy ? "Tenyampet" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -519,7 +513,7 @@ function Page() {
             type="text"
             required
             name="currentCity"
-            defaultValue={fillDummy ? "Chennai" : undefined}
+            // defaultValue={fillDummy ? "Chennai" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -536,7 +530,7 @@ function Page() {
             pattern="[0-9]{6}"
             required
             name="currentPincode"
-            defaultValue={fillDummy ? "600123" : undefined}
+            // defaultValue={fillDummy ? "600123" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -553,7 +547,7 @@ function Page() {
               Select State
             </option>
             {INDIAN_STATES.map((state) => {
-              if (String(state.id) === String(profileDetails.currentState))
+              if (String(state.id) === String(profileDetails?.currentState))
                 return (
                   <option value={state.id} key={nanoid(3)} selected>
                     {state.state}
@@ -580,7 +574,7 @@ function Page() {
             type="text"
             required
             name="currentCountry"
-            defaultValue={fillDummy ? "India" : undefined}
+            // defaultValue={fillDummy ? "India" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -593,7 +587,7 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
             name="currentLandLine"
-            defaultValue={fillDummy ? "0441234567" : undefined}
+            // defaultValue={fillDummy ? "0441234567" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -610,7 +604,7 @@ function Page() {
             pattern="[6-9]\d{9}"
             required
             name="currentMobile"
-            defaultValue={fillDummy ? "9123456789" : undefined}
+            // defaultValue={fillDummy ? "9123456789" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -625,7 +619,7 @@ function Page() {
             type="email"
             required
             name="currentEmail"
-            defaultValue={fillDummy ? "example@example.com" : undefined}
+            // defaultValue={fillDummy ? "example@example.com" : undefined}
           />
         </div>
       </div>
@@ -665,7 +659,7 @@ function Page() {
             type="text"
             required
             name="permanentAddress"
-            defaultValue={fillDummy ? "no.8, 10th street" : undefined}
+            // defaultValue={fillDummy ? "no.8, 10th street" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -680,7 +674,7 @@ function Page() {
             type="text"
             required
             name="permanentArea"
-            defaultValue={fillDummy ? "Downtown" : undefined}
+            // defaultValue={fillDummy ? "Downtown" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -695,7 +689,7 @@ function Page() {
             type="text"
             required
             name="permanentCity"
-            defaultValue={fillDummy ? "Springfield" : undefined}
+            // defaultValue={fillDummy ? "Springfield" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -712,7 +706,7 @@ function Page() {
             pattern="[0-9]{6}"
             required
             name="permanentPincode"
-            defaultValue={fillDummy ? "650156" : undefined}
+            // defaultValue={fillDummy ? "650156" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -729,7 +723,7 @@ function Page() {
               Select State
             </option>
             {INDIAN_STATES.map((state) => {
-              if (String(state.id) === String(profileDetails.permanentState))
+              if (String(state.id) === String(profileDetails?.permanentState))
                 return (
                   <option value={state.id} key={nanoid(3)} selected>
                     {state.state}
@@ -756,7 +750,7 @@ function Page() {
             type="text"
             required
             name="permanentCountry"
-            defaultValue={fillDummy ? "India" : undefined}
+            // defaultValue={fillDummy ? "India" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -770,7 +764,7 @@ function Page() {
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="text"
             name="permanentLandLine"
-            defaultValue={fillDummy ? "04412345678" : undefined}
+            // defaultValue={fillDummy ? "04412345678" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -785,7 +779,7 @@ function Page() {
             type="text"
             required
             name="permanentMobile"
-            defaultValue={fillDummy ? "9876543210" : undefined}
+            // defaultValue={fillDummy ? "9876543210" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -800,7 +794,7 @@ function Page() {
             type="email"
             required
             name="permanentEmail"
-            defaultValue={fillDummy ? "example1@example.com" : undefined}
+            // defaultValue={fillDummy ? "example1@example.com" : undefined}
           />
         </div>
       </div>
@@ -820,7 +814,7 @@ function Page() {
             type="text"
             required
             name="appliedDegree"
-            defaultValue={fillDummy ? "B.Sc Computer Science" : undefined}
+            // defaultValue={fillDummy ? "B.Sc Computer Science" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -835,7 +829,7 @@ function Page() {
             type="text"
             required
             name="lastQualifying"
-            defaultValue={fillDummy ? "Higher Secondary" : undefined}
+            // defaultValue={fillDummy ? "Higher Secondary" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -850,7 +844,7 @@ function Page() {
             type="text"
             required
             name="schoolName"
-            defaultValue={fillDummy ? "ABC High School" : undefined}
+            // defaultValue={fillDummy ? "ABC High School" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -864,7 +858,7 @@ function Page() {
             type="text"
             required
             name="schoolBranch"
-            defaultValue={fillDummy ? "Science" : undefined}
+            // defaultValue={fillDummy ? "Science" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -879,7 +873,7 @@ function Page() {
             type="text"
             required
             name="boardName"
-            defaultValue={fillDummy ? "State Board" : undefined}
+            // defaultValue={fillDummy ? "State Board" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -894,7 +888,7 @@ function Page() {
             type="text"
             required
             name="langMedium"
-            defaultValue={fillDummy ? "English" : undefined}
+            // defaultValue={fillDummy ? "English" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -909,7 +903,7 @@ function Page() {
             type="text"
             required
             name="regNo"
-            defaultValue={fillDummy ? "123456789" : undefined}
+            // defaultValue={fillDummy ? "123456789" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -929,7 +923,7 @@ function Page() {
             }
             required
             name="gradePercentage"
-            defaultValue={fillDummy ? "93.33" : undefined}
+            // defaultValue={fillDummy ? "93.33" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -944,9 +938,9 @@ function Page() {
             type="date"
             required
             name="dateOfPassing"
-            defaultValue={
-              fillDummy ? dateTo_YYYY_MM_DD(new Date("2019-05-24")) : undefined
-            }
+            // defaultValue={
+            //   fillDummy ? dateTo_YYYY_MM_DD(new Date("2019-05-24")) : undefined
+            // }
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -961,7 +955,7 @@ function Page() {
             type="text"
             required
             name="schoolAddress"
-            defaultValue={fillDummy ? "123, Main Street" : undefined}
+            // defaultValue={fillDummy ? "123, Main Street" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -975,7 +969,7 @@ function Page() {
             type="text"
             required
             name="schoolCity"
-            defaultValue={fillDummy ? "Chennai" : undefined}
+            // defaultValue={fillDummy ? "Chennai" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -992,7 +986,7 @@ function Page() {
             pattern="[0-9]{6}"
             required
             name="schoolPincode"
-            defaultValue={fillDummy ? "600064" : undefined}
+            // defaultValue={fillDummy ? "600064" : undefined}
           />
         </div>
       </div>
@@ -1012,7 +1006,7 @@ function Page() {
             type="number"
             required
             name="noOfBrothers"
-            defaultValue={fillDummy ? "2" : undefined}
+            // defaultValue={fillDummy ? "2" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -1027,7 +1021,7 @@ function Page() {
             type="number"
             required
             name="noOfSisters"
-            defaultValue={fillDummy ? "1" : undefined}
+            // defaultValue={fillDummy ? "1" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -1042,7 +1036,7 @@ function Page() {
             type="number"
             required
             name="siblingStudyingCount"
-            defaultValue={fillDummy ? "1" : undefined}
+            // defaultValue={fillDummy ? "1" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -1060,9 +1054,9 @@ function Page() {
             type="text"
             required
             name="siblingStudyingDetails"
-            defaultValue={
-              fillDummy ? "B.Sc Computer Science, Second Year" : undefined
-            }
+            // defaultValue={
+            //   fillDummy ? "B.Sc Computer Science, Second Year" : undefined
+            // }
           />
         </div>
       </div>
@@ -1084,7 +1078,7 @@ function Page() {
               required
               name="fatherName"
               placeholder="Father's Name"
-              defaultValue={fillDummy ? "John Doe" : undefined}
+              // defaultValue={fillDummy ? "John Doe" : undefined}
             />
           </div>
 
@@ -1104,7 +1098,7 @@ function Page() {
               required
               name="fatherQualification"
               placeholder="Father's Qualification"
-              defaultValue={fillDummy ? "Bachelor's Degree" : undefined}
+              // defaultValue={fillDummy ? "Bachelor's Degree" : undefined}
             />
           </div>
 
@@ -1121,7 +1115,7 @@ function Page() {
               required
               name="fatherOccupation"
               placeholder="Father's Occupation"
-              defaultValue={fillDummy ? "Engineer" : undefined}
+              // defaultValue={fillDummy ? "Engineer" : undefined}
             />
           </div>
 
@@ -1138,7 +1132,7 @@ function Page() {
               required
               name="fatherOrganization"
               placeholder="Father's Organization"
-              defaultValue={fillDummy ? "ABC Corporation" : undefined}
+              // defaultValue={fillDummy ? "ABC Corporation" : undefined}
             />
           </div>
 
@@ -1155,7 +1149,7 @@ function Page() {
               required
               name="fatherDesignation"
               placeholder="Father's Designation"
-              defaultValue={fillDummy ? "Senior Engineer" : undefined}
+              // defaultValue={fillDummy ? "Senior Engineer" : undefined}
             />
           </div>
 
@@ -1170,7 +1164,7 @@ function Page() {
               type="text"
               name="fatherEmpId"
               placeholder="Father's EMP.ID"
-              defaultValue={fillDummy ? "123456" : undefined}
+              // defaultValue={fillDummy ? "123456" : undefined}
             />
           </div>
 
@@ -1187,7 +1181,7 @@ function Page() {
               required
               name="fatherMobile"
               placeholder="Father's Mobile No"
-              defaultValue={fillDummy ? "9876543210" : undefined}
+              // defaultValue={fillDummy ? "9876543210" : undefined}
             />
           </div>
 
@@ -1204,7 +1198,7 @@ function Page() {
               required
               name="fatherEmail"
               placeholder="Father's Email ID"
-              defaultValue={fillDummy ? "john.doe@example.com" : undefined}
+              // defaultValue={fillDummy ? "john.doe@example.com" : undefined}
             />
           </div>
 
@@ -1221,7 +1215,7 @@ function Page() {
               required
               name="fatherAnnualIncome"
               placeholder="Father's Annual Income"
-              defaultValue={fillDummy ? "800000" : undefined}
+              // defaultValue={fillDummy ? "800000" : undefined}
             />
           </div>
 
@@ -1238,7 +1232,7 @@ function Page() {
               required
               name="fatherAddress"
               placeholder="Father's Address"
-              defaultValue={fillDummy ? "123 Main Street" : undefined}
+              // defaultValue={fillDummy ? "123 Main Street" : undefined}
             />
           </div>
 
@@ -1255,7 +1249,7 @@ function Page() {
               required
               name="fatherCityName"
               placeholder="Father's City Name"
-              defaultValue={fillDummy ? "New York" : undefined}
+              // defaultValue={fillDummy ? "New York" : undefined}
             />
           </div>
 
@@ -1276,7 +1270,7 @@ function Page() {
               </option>
               {INDIAN_STATES.map((state) => {
                 if (
-                  String(state.id) === String(profileDetails.fatherParentState)
+                  String(state.id) === String(profileDetails?.fatherParentState)
                 )
                   return (
                     <option value={String(state.id)} key={nanoid(3)} selected>
@@ -1306,7 +1300,7 @@ function Page() {
               required
               name="fatherPincode"
               placeholder="Father's State Pincode"
-              defaultValue={fillDummy ? "600023" : undefined}
+              // defaultValue={fillDummy ? "600023" : undefined}
             />
           </div>
         </div>
@@ -1327,7 +1321,7 @@ function Page() {
               required
               name="motherName"
               placeholder="Mother's Name"
-              defaultValue={fillDummy ? "Jane Doe" : undefined}
+              // defaultValue={fillDummy ? "Jane Doe" : undefined}
             />
           </div>
 
@@ -1347,7 +1341,7 @@ function Page() {
               required
               name="motherQualification"
               placeholder="Mother's Qualification"
-              defaultValue={fillDummy ? "Master's Degree" : undefined}
+              // defaultValue={fillDummy ? "Master's Degree" : undefined}
             />
           </div>
 
@@ -1364,7 +1358,7 @@ function Page() {
               required
               name="motherOccupation"
               placeholder="Mother's Occupation"
-              defaultValue={fillDummy ? "Doctor" : undefined}
+              // defaultValue={fillDummy ? "Doctor" : undefined}
             />
           </div>
 
@@ -1381,7 +1375,7 @@ function Page() {
               required
               name="motherOrganization"
               placeholder="Mother's Organization"
-              defaultValue={fillDummy ? "XYZ Hospital" : undefined}
+              // defaultValue={fillDummy ? "XYZ Hospital" : undefined}
             />
           </div>
 
@@ -1398,7 +1392,7 @@ function Page() {
               required
               name="motherDesignation"
               placeholder="Mother's Designation"
-              defaultValue={fillDummy ? "Chief Surgeon" : undefined}
+              // defaultValue={fillDummy ? "Chief Surgeon" : undefined}
             />
           </div>
 
@@ -1413,7 +1407,7 @@ function Page() {
               type="text"
               name="motherEmpId"
               placeholder="Mother's EMP.ID"
-              defaultValue={fillDummy ? "654321" : undefined}
+              // defaultValue={fillDummy ? "654321" : undefined}
             />
           </div>
 
@@ -1430,7 +1424,7 @@ function Page() {
               required
               name="motherMobile"
               placeholder="Mother's Mobile No"
-              defaultValue={fillDummy ? "9876543210" : undefined}
+              // defaultValue={fillDummy ? "9876543210" : undefined}
             />
           </div>
 
@@ -1447,7 +1441,7 @@ function Page() {
               required
               name="motherEmail"
               placeholder="Mother's Email ID"
-              defaultValue={fillDummy ? "jane.doe@example.com" : undefined}
+              // defaultValue={fillDummy ? "jane.doe@example.com" : undefined}
             />
           </div>
 
@@ -1464,7 +1458,7 @@ function Page() {
               required
               name="motherAnnualIncome"
               placeholder="Mother's Annual Income"
-              defaultValue={fillDummy ? "750000" : undefined}
+              // defaultValue={fillDummy ? "750000" : undefined}
             />
           </div>
 
@@ -1481,7 +1475,7 @@ function Page() {
               required
               name="motherAddress"
               placeholder="Mother's Address"
-              defaultValue={fillDummy ? "456 Oak Avenue" : undefined}
+              // defaultValue={fillDummy ? "456 Oak Avenue" : undefined}
             />
           </div>
 
@@ -1498,7 +1492,7 @@ function Page() {
               required
               name="motherCityName"
               placeholder="Mother's City Name"
-              defaultValue={fillDummy ? "Los Angeles" : undefined}
+              // defaultValue={fillDummy ? "Los Angeles" : undefined}
             />
           </div>
 
@@ -1519,7 +1513,7 @@ function Page() {
               </option>
               {INDIAN_STATES.map((state) => {
                 if (
-                  String(state.id) === String(profileDetails.motherParentState)
+                  String(state.id) === String(profileDetails?.motherParentState)
                 )
                   return (
                     <option value={state.id} key={nanoid(3)} selected>
@@ -1551,7 +1545,7 @@ function Page() {
               required
               name="motherPincode"
               placeholder="Mother's State Pincode"
-              defaultValue={fillDummy ? "900123" : undefined}
+              // defaultValue={fillDummy ? "900123" : undefined}
             />
           </div>
         </div>
@@ -1568,7 +1562,7 @@ function Page() {
             type="text"
             required
             name="place"
-            defaultValue={fillDummy ? "Chennai" : undefined}
+            // defaultValue={fillDummy ? "Chennai" : undefined}
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -1582,7 +1576,7 @@ function Page() {
             required
             name="date"
             disabled
-            defaultValue={dateTo_YYYY_MM_DD()}
+            // defaultValue={dateTo_YYYY_MM_DD()}
           />
         </div>
       </div>

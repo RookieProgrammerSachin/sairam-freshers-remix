@@ -25,6 +25,7 @@ import {
 
 /** NOTE: functions with prefix "admin_" must only be used by admin to manipulate data manually and NOT to be exported to be used by
  * server or client or such
+ * Also, commenting all such admin_ function because I dont event want to accidentally call and to totally make sure what I am doing with admin_ functions
  */
 
 const INDIAN_STATES = [
@@ -67,7 +68,7 @@ const INDIAN_STATES = [
 ];
 
 /** Insert sample user data */
-async function admin_insertSample() {
+/* async function admin_insertSample() {
   const data = await db
     .insert(userTable)
     .values({
@@ -81,26 +82,28 @@ async function admin_insertSample() {
     .returning();
   console.log("🚀 ~ data ~ data:", data);
 }
+  */
 
-/** Insert to DB for states */
-async function admin_insertStates() {
+// /** Insert to DB for states */
+/** async function admin_insertStates() {
   const data = await db
     .insert(indianStatesTable)
-    .values(INDIAN_STATES.map((state) => ({ state })))
+    .values(INDIAN_STATES.map((state, i) => ({ id: i + 1, state: state })))
     .returning();
   console.log(data);
-}
+} */
 
-/** insert date for user created_at and updated_at */
-async function admin_setUserDates() {
+// /** insert date for user created_at and updated_at */
+/** async function admin_setUserDates() {
   const data = await db
     .update(userTable)
     .set({ createdAt: new Date(), updatedAt: new Date() });
   console.log("🚀 ~ admin_setUserDates ~ data:", data);
 }
+  */
 
 /** Add admin user */
-async function admin_addAdminUser() {
+/** async function admin_addAdminUser() {
   await db.insert(userTable).values({
     applicationNo: "someid",
     emailId: "somemail",
@@ -110,6 +113,7 @@ async function admin_addAdminUser() {
     role: "ROLE_ADMIN",
   });
 }
+  I*/
 
 /** Update all user info to have department and college */
 /* async function admin_updateUser() {
@@ -132,6 +136,24 @@ async function admin_addAdminUser() {
   console.log("done");
 }
 */
+
+/** Change the "obfuscation" back to normal to have correct functionaly -- change update(noasdfk) to update(user.somekeytogivepwd) */
+// const dataToExport = userData.map((user) => ({
+//   name: user.Student_Name,
+//   password: crypto.createHash("sha256").update("fasdfaf").digest("hex"),
+//   applicationNo: String(user.Application_Number),
+//   emailId: user.Email_ID,
+//   mobile: String(user.Mobile_Number),
+//   role: "ROLE_STUDENT" as const,
+//   college: user.College_Allocated as unknown as typeof collegeEnum,
+//   department: user.Department_Allocated as unknown as typeof deptEnum,
+// }));
+// console.log("🚀 ~ dataToExport ~ dataToExport:", dataToExport);
+
+/** Function to add all users from JSON */
+// async function insertUserData() {
+//   await db.insert(userTable).values(dataToExport);
+// }
 
 /** NOTE: following are the actualy queries to be used and are exported from here */
 
@@ -333,6 +355,10 @@ export async function getAllProfileDetails(userId: string) {
     .innerJoin(familyDetailsTable, eq(familyDetailsTable.userId, userTable.id))
     .innerJoin(parentDetailsTable, eq(parentDetailsTable.userId, userTable.id))
     .where(eq(userTable.id, userId));
+
+  if (data.length === 0) {
+    return false;
+  }
 
   /** Joins are kind of wild in here, so i wanted them to be flattened af so that i can directly start using it */
   result = {

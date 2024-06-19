@@ -1,3 +1,4 @@
+import NoResources from "@/components/NoResources";
 import { ErrorBoundary } from "@/root";
 import { requireAuthCookie } from "@/utils/auth";
 import { LoaderFunctionArgs } from "@remix-run/node";
@@ -13,7 +14,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function Page() {
-  return <div>Guide</div>;
+  return (
+    <div>
+      <NoResources resourceName="Guide" />
+    </div>
+  );
 }
 
 export default Page;
