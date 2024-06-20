@@ -1,5 +1,5 @@
 import { currentYear } from "@/utils";
-import { Outlet, useLoaderData } from "@remix-run/react";
+import { Outlet, useLoaderData, useNavigation } from "@remix-run/react";
 import {
   Menu,
   MenuButton,
@@ -24,6 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 function Layout() {
   const userData = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
 
   return (
     <>
@@ -86,14 +87,14 @@ function Layout() {
           </Menu>
         </div>
       </nav>
-      <div className="main-container grid w-full gap-8 self-center px-6 py-4 md:flex md:grid-rows-[0.7fr_2fr] md:px-12 md:py-10">
+      <div className="main-container grid w-full gap-8 self-center p-4 md:flex md:grid-rows-[0.7fr_2fr] md:px-12 md:py-10">
         <Nav />
 
         {/* Page Content */}
         <div className="flex max-h-fit flex-col rounded-md border bg-card px-4 py-8 md:w-full md:max-w-[80vw] md:px-8 md:py-12">
           <h1 className="text-2xl font-semibold">Hi, {userData.name}!</h1>
           <p className="mb-6">Use the menu on the left to view updates</p>
-          <Outlet />
+          {navigation.location ? "Loading..." : <Outlet />}
         </div>
       </div>
     </>

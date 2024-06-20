@@ -70,7 +70,7 @@ function Layout() {
           </Menu>
         </div>
       </nav>
-      <div className="main-container grid w-full gap-8 self-center px-6 py-4 md:flex md:grid-rows-[0.7fr_2fr] md:px-12 md:py-10">
+      <div className="main-container grid w-full gap-8 self-center p-4 md:flex md:grid-rows-[0.7fr_2fr] md:px-12 md:py-10">
         <AdminNav />
 
         {/* Page Content */}

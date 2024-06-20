@@ -29,11 +29,12 @@ function Button({
           disabled
             ? "pointer-events-none cursor-default bg-accent/50"
             : "bg-accent"
-        } grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`,
+        } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`,
         className,
       )}
     >
-      {disabled ? disabledComponent : label}
+      {disabled && disabledComponent}
+      {label}
     </Link>
   ) : (
     <button
@@ -43,13 +44,14 @@ function Button({
           disabled
             ? "pointer-events-none cursor-default bg-accent/50"
             : "bg-accent"
-        } grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`,
+        } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`,
         className,
       )}
       name={name}
       value={value}
     >
-      {disabled ? disabledComponent : label}
+      {disabled && disabledComponent}
+      {label}
     </button>
   );
 }

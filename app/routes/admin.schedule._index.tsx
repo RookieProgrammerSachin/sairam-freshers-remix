@@ -151,7 +151,7 @@ function SchedulePage() {
       </h1>
       <fetcher.Form
         method="POST"
-        className="flex flex-col gap-4 rounded-md border-[3px] border-dashed bg-primary p-4"
+        className="flex flex-col gap-4 rounded-md border-[3px] border-dashed bg-primary p-2 py-4 md:p-4"
         ref={createEventForm}
       >
         <h1 className="flex items-center text-2xl font-semibold">
@@ -380,7 +380,7 @@ function SchedulePage() {
                   </div>
                   <div className="ml-auto flex flex-col items-center gap-2">
                     <Button
-                      className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-1 text-blue-500"
+                      className="flex items-center gap-1 rounded-md bg-blue-50 px-4 py-0.5 text-base text-blue-500 md:w-[unset] md:px-4 md:py-1"
                       to={`${orientation.id}/edit`}
                       label={
                         <>
@@ -391,7 +391,7 @@ function SchedulePage() {
                       disabled={isDeleting}
                     ></Button>
                     <Button
-                      className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-1 text-red-500"
+                      className="flex items-center gap-1 rounded-md bg-red-50 px-4 py-0.5 text-base text-red-500 md:w-[unset] md:px-4 md:py-1"
                       label={
                         <>
                           <IoMdTrash />

@@ -10,7 +10,7 @@ import {
   useActionData,
   useNavigation,
 } from "@remix-run/react";
-import { createObjectFromFormData } from "@/utils";
+import { createObjectFromFormData, wait } from "@/utils";
 import { RULES } from "@/static";
 import {
   LoginData,
@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const data = await request.formData();
   const destructured = createObjectFromFormData(data) as unknown as LoginData;
   const validation = validateLogin(destructured);
-
+  await wait(2000);
   if (Object.keys(validation).length > 0)
     return json({ error: validation }, 400);
 
@@ -154,9 +154,9 @@ export default function Index() {
               isButtonDisabled
                 ? "pointer-events-none cursor-default bg-accent/50"
                 : "bg-accent"
-            } mb-6 grid w-full place-content-center rounded-full border-none px-4 py-2 text-center text-primary`}
+            } mb-6 flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`}
           >
-            {isButtonDisabled ? <span className="loader"></span> : `Sign In`}
+            {isButtonDisabled && <span className="loader"></span>} Sign In
           </button>
         </Form>
       </div>

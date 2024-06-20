@@ -15,7 +15,7 @@ import {
 import Button from "@/components/ui/button";
 import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   getAllProfileDetails,
   insertProfileDetails,
@@ -320,11 +320,7 @@ function Page() {
   };
 
   return (
-    <Form
-      className="space-y-8 md:space-y-5"
-      method="POST"
-      onChange={(e) => console.log(" triggered")}
-    >
+    <Form className="space-y-8 md:space-y-5" method="POST">
       {/* Personal details */}
       <h3 className="text-lg font-semibold">Personal Details</h3>
       {/* <button onClick={() => setFillDummy(!fillDummy)}>
@@ -433,8 +429,8 @@ function Page() {
             name="community"
           >
             <option value="select">Select</option>
-            {COMMUNITIES.map((community, i) => {
-              if (community === profileDetails?.community) {
+            {COMMUNITIES.map((community) => {
+              if (community === (profileDetails && profileDetails.community)) {
                 return (
                   <option value={community} key={nanoid(3)} selected={true}>
                     {community}
@@ -547,7 +543,10 @@ function Page() {
               Select State
             </option>
             {INDIAN_STATES.map((state) => {
-              if (String(state.id) === String(profileDetails?.currentState))
+              if (
+                String(state.id) ===
+                String(profileDetails && profileDetails.currentState)
+              )
                 return (
                   <option value={state.id} key={nanoid(3)} selected>
                     {state.state}
@@ -723,7 +722,10 @@ function Page() {
               Select State
             </option>
             {INDIAN_STATES.map((state) => {
-              if (String(state.id) === String(profileDetails?.permanentState))
+              if (
+                String(state.id) ===
+                String(profileDetails && profileDetails.permanentState)
+              )
                 return (
                   <option value={state.id} key={nanoid(3)} selected>
                     {state.state}
@@ -1004,6 +1006,8 @@ function Page() {
             placeholder="No. of brothers"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="number"
+            min={0}
+            max={10}
             required
             name="noOfBrothers"
             // defaultValue={fillDummy ? "2" : undefined}
@@ -1019,6 +1023,8 @@ function Page() {
             placeholder="No. of sisters"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="number"
+            min={0}
+            max={10}
             required
             name="noOfSisters"
             // defaultValue={fillDummy ? "1" : undefined}
@@ -1034,6 +1040,8 @@ function Page() {
             placeholder="Brothers/Sisters studying in Sairam"
             className="rounded-md bg-white px-3 py-1.5 outline outline-1 outline-gray-200 placeholder:text-sm focus:outline-gray-300"
             type="number"
+            min={0}
+            max={10}
             required
             name="siblingStudyingCount"
             // defaultValue={fillDummy ? "1" : undefined}
@@ -1270,7 +1278,8 @@ function Page() {
               </option>
               {INDIAN_STATES.map((state) => {
                 if (
-                  String(state.id) === String(profileDetails?.fatherParentState)
+                  String(state.id) ===
+                  String(profileDetails && profileDetails.fatherParentState)
                 )
                   return (
                     <option value={String(state.id)} key={nanoid(3)} selected>
@@ -1513,7 +1522,8 @@ function Page() {
               </option>
               {INDIAN_STATES.map((state) => {
                 if (
-                  String(state.id) === String(profileDetails?.motherParentState)
+                  String(state.id) ===
+                  String(profileDetails && profileDetails.motherParentState)
                 )
                   return (
                     <option value={state.id} key={nanoid(3)} selected>
@@ -1576,7 +1586,7 @@ function Page() {
             required
             name="date"
             disabled
-            // defaultValue={dateTo_YYYY_MM_DD()}
+            defaultValue={dateTo_YYYY_MM_DD()}
           />
         </div>
       </div>
@@ -1597,7 +1607,7 @@ function Page() {
             id="parentSignature"
             className="hidden"
             type="file"
-            required
+            // required
             name="parentSignature"
           />
         </div>
@@ -1616,7 +1626,7 @@ function Page() {
             id="candidateSignature"
             className="hidden"
             type="file"
-            required
+            // required
             name="candidateSignature"
           />
         </div>

@@ -12,6 +12,7 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { Slide, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { GlobalLoading } from "./components/GlobalLoading";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -27,6 +28,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="grid place-items-center bg-primary">
+        <GlobalLoading />
         <MantineProvider>{children}</MantineProvider>
         <ToastContainer
           position="top-right"
