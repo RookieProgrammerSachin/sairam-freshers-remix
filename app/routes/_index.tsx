@@ -154,7 +154,7 @@ export default function Index() {
               isButtonDisabled
                 ? "pointer-events-none cursor-default bg-accent/50"
                 : "bg-accent"
-            } mb-6 flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`}
+            } mb-6 flex w-full transition items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`}
           >
             {isButtonDisabled && <span className="loader"></span>} Sign In
           </button>

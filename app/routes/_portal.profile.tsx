@@ -1,9 +1,10 @@
 import {
-  Form,
   MetaFunction,
-  useActionData,
+  useFetcher,
   useLoaderData,
+  useSubmit,
 } from "@remix-run/react";
+import axios from "axios";
 import { ErrorBoundary } from "@/root";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { requireAuthCookie } from "@/utils/auth";
@@ -15,7 +16,7 @@ import {
 import Button from "@/components/ui/button";
 import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
-import { useEffect, useRef } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import {
   getAllProfileDetails,
   insertProfileDetails,
@@ -33,10 +34,15 @@ import { LuUploadCloud } from "react-icons/lu";
 
 export type SubmitResponseType = {
   message?: string;
-  error?: ProfileFormErrorType;
+  error?: ProfileFormErrorType | string;
+  imgURL?: {
+    parentSignature?: string;
+    candidateSignature?: string;
+  };
 };
 
 export type ProfileFormSubmitType = {
+  intent: "data";
   name: string;
   dob: string;
   motherTongue: string;
@@ -109,6 +115,8 @@ export type ProfileFormSubmitType = {
   date: string;
   parentSignature: string;
   candidateSignature: string;
+  parentSignatureURL: string;
+  candidateSignatureURL: string;
 };
 
 export const meta: MetaFunction = () => {
@@ -125,10 +133,21 @@ export async function action({ request }: ActionFunctionArgs) {
   const user = await requireAuthCookie(request);
   try {
     const data = await request.formData();
+    console.log("🚀 ~ action ~ data:", data);
+    const intent = data.get("intent");
+
+    if (intent !== "data") {
+      return json({ error: "Invalid request method!" });
+    }
     const dataObject = createObjectFromFormData(
       data,
     ) as unknown as ProfileFormSubmitType;
+    console.log(dataObject);
 
+    // make a procedure in queries to uplaod images and then use that func here to upload two imgs,
+    // once link is available, pass it to declaration table and use it
+
+    return json({ message: "Ok" });
     const validation = validateProfileData(dataObject);
     if (Object.keys(validation).length > 0)
       return json({ error: validation } as SubmitResponseType, 400);
@@ -256,7 +275,6 @@ export async function action({ request }: ActionFunctionArgs) {
  */
 
 function Page() {
-  const submitDataAction = useActionData<typeof action>();
   const profileDetails = useLoaderData<typeof loader>();
 
   // const [fillDummy, setFillDummy] = useState(false);
@@ -264,8 +282,16 @@ function Page() {
   const permanentAddressContainer = useRef<HTMLDivElement>(null);
   const gradeInputRef = useRef<HTMLInputElement>(null);
 
+  const fetcher = useFetcher<SubmitResponseType>();
+  const isSubmitting = fetcher.state !== "idle";
+
+  const [parentSignature, setParentSignature] = useState<Blob>();
+  const [candidateSignature, setCandidateSignature] = useState<Blob>();
+  const parentSignatureURL = useRef<string>();
+  const candidateSignatureURL = useRef<string>();
+
   useEffect(() => {
-    if (profileDetails)
+    if (profileDetails) {
       Object.keys(profileDetails).forEach((data) => {
         const elem = document.querySelector<HTMLInputElement>(
           // @ts-expect-error chi!
@@ -276,27 +302,38 @@ function Page() {
           elem.defaultValue =
             profileDetails[data as keyof typeof profileDetails];
       });
+    } //else if localstorage data available use its data to autofill shit
   }, [profileDetails]);
 
-  if (submitDataAction?.message) {
-    toast.success(submitDataAction.message);
-    submitDataAction.message = undefined;
+  if (fetcher.data?.message) {
+    toast.success(fetcher.data.message);
+    const imgs = fetcher.data.imgURL;
+
+    if (imgs?.parentSignature)
+      parentSignatureURL.current = imgs?.parentSignature;
+    if (imgs?.candidateSignature)
+      candidateSignatureURL.current = imgs?.candidateSignature;
+
+    fetcher.data.message = undefined;
+    fetcher.data.imgURL = undefined;
   }
 
-  if (submitDataAction?.error) {
-    if (typeof submitDataAction.error === "string") {
-      toast.error(submitDataAction.error);
+  if (fetcher.data?.error) {
+    console.log("🚀 ~ Page ~ fetcher.data?.error:", fetcher.data?.error);
+    if (typeof fetcher.data.error === "string") {
+      toast.error(fetcher.data.error);
     } else {
-      Object.keys(submitDataAction.error).forEach((err) => {
-        const errrs = submitDataAction.error;
-        // @ts-expect-error:next-line
-        toast.error(errrs[err], {
-          autoClose: false,
-          closeOnClick: false,
+      fetcher.data?.error &&
+        Object.keys(fetcher.data?.error).forEach((err) => {
+          const errrs = fetcher.data?.error;
+          // @ts-expect-error chi!
+          toast.error(errrs[err], {
+            autoClose: false,
+            closeOnClick: false,
+          });
         });
-      });
     }
-    submitDataAction.error = undefined;
+    fetcher.data.error = undefined;
   }
 
   const fillPermanentAddress = (action: boolean) => {
@@ -319,8 +356,22 @@ function Page() {
     }
   };
 
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const image = e.currentTarget.files?.[0];
+    const fieldName = e.currentTarget.name;
+    if (!image || !fieldName) return;
+
+    const imgBlob = new Blob([await image.arrayBuffer()], { type: image.type });
+    if (fieldName === "parentSignature") setParentSignature(imgBlob);
+    if (fieldName === "candidateSignature") setCandidateSignature(imgBlob);
+  };
+
   return (
-    <Form className="space-y-8 md:space-y-5" method="POST">
+    <fetcher.Form
+      className="space-y-8 md:space-y-5"
+      method="POST"
+      encType="multipart/form-data"
+    >
       {/* Personal details */}
       <h3 className="text-lg font-semibold">Personal Details</h3>
       {/* <button onClick={() => setFillDummy(!fillDummy)}>
@@ -432,13 +483,13 @@ function Page() {
             {COMMUNITIES.map((community) => {
               if (community === (profileDetails && profileDetails.community)) {
                 return (
-                  <option value={community} key={nanoid(3)} selected={true}>
+                  <option value={community} key={nanoid(6)} selected={true}>
                     {community}
                   </option>
                 );
               } else {
                 return (
-                  <option value={community} key={nanoid(3)}>
+                  <option value={community} key={nanoid(6)}>
                     {community}
                   </option>
                 );
@@ -548,13 +599,13 @@ function Page() {
                 String(profileDetails && profileDetails.currentState)
               )
                 return (
-                  <option value={state.id} key={nanoid(3)} selected>
+                  <option value={state.id} key={nanoid(6)} selected>
                     {state.state}
                   </option>
                 );
               else
                 return (
-                  <option value={state.id} key={nanoid(3)}>
+                  <option value={state.id} key={nanoid(6)}>
                     {state.state}
                   </option>
                 );
@@ -727,13 +778,13 @@ function Page() {
                 String(profileDetails && profileDetails.permanentState)
               )
                 return (
-                  <option value={state.id} key={nanoid(3)} selected>
+                  <option value={state.id} key={nanoid(6)} selected>
                     {state.state}
                   </option>
                 );
               else
                 return (
-                  <option value={state.id} key={nanoid(3)}>
+                  <option value={state.id} key={nanoid(6)}>
                     {state.state}
                   </option>
                 );
@@ -1282,13 +1333,13 @@ function Page() {
                   String(profileDetails && profileDetails.fatherParentState)
                 )
                   return (
-                    <option value={String(state.id)} key={nanoid(3)} selected>
+                    <option value={String(state.id)} key={nanoid(6)} selected>
                       {state.state}
                     </option>
                   );
                 else
                   return (
-                    <option value={String(state.id)} key={nanoid(3)}>
+                    <option value={String(state.id)} key={nanoid(6)}>
                       {state.state}
                     </option>
                   );
@@ -1526,13 +1577,13 @@ function Page() {
                   String(profileDetails && profileDetails.motherParentState)
                 )
                   return (
-                    <option value={state.id} key={nanoid(3)} selected>
+                    <option value={state.id} key={nanoid(6)} selected>
                       {state.state}
                     </option>
                   );
                 else
                   return (
-                    <option value={state.id} key={nanoid(3)}>
+                    <option value={state.id} key={nanoid(6)}>
                       {state.state}
                     </option>
                   );
@@ -1595,47 +1646,80 @@ function Page() {
         <div className="flex flex-col gap-1">
           <label
             htmlFor="parentSignature"
-            className="flex flex-col gap-3 text-sm font-normal"
+            className="flex cursor-pointer flex-col gap-3 text-sm font-normal"
           >
             Signature of the Parent
-            <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 px-3 py-1.5 placeholder:text-sm">
-              <LuUploadCloud color="#8a8a8a" />
-              <p className="text-xs text-slate-500">Upload</p>
+            <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 placeholder:text-sm">
+              {parentSignature ? (
+                <>
+                  <img
+                    className={`h-auto ${isSubmitting ? "opacity-60" : ""} w-28`}
+                    src={URL.createObjectURL(parentSignature)}
+                    alt=""
+                  />
+                </>
+              ) : (
+                <>
+                  <LuUploadCloud color="#8a8a8a" />
+                  <p className="text-xs text-slate-500">Upload</p>
+                </>
+              )}
             </div>
           </label>
           <input
             id="parentSignature"
             className="hidden"
             type="file"
-            // required
+            accept="image/*"
             name="parentSignature"
+            onChange={handleImageUpload}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label
             htmlFor="candidateSignature"
-            className="flex flex-col gap-3 text-sm font-normal"
+            className="flex cursor-pointer flex-col gap-3 text-sm font-normal"
           >
             Signature of the Candidate
-            <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 px-3 py-1.5 placeholder:text-sm">
-              <LuUploadCloud color="#8a8a8a" />
-              <p className="text-xs text-slate-500">Upload</p>
+            <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 placeholder:text-sm">
+              {candidateSignature ? (
+                <>
+                  <img
+                    className={`h-auto ${isSubmitting ? "opacity-60" : ""} w-28`}
+                    src={URL.createObjectURL(candidateSignature)}
+                    alt=""
+                  />
+                </>
+              ) : (
+                <>
+                  <LuUploadCloud color="#8a8a8a" />
+                  <p className="text-xs text-slate-500">Upload</p>
+                </>
+              )}
             </div>
           </label>
           <input
             id="candidateSignature"
             className="hidden"
             type="file"
-            // required
+            accept="image/*"
             name="candidateSignature"
+            onChange={handleImageUpload}
           />
         </div>
       </div>
 
       <div className="flex w-full justify-end">
-        <Button label="Submit" className="mb-6 w-fit px-8" />
+        <Button
+          name="intent"
+          value={"data"}
+          disabled={isSubmitting}
+          label="Submit"
+          className="mb-6 w-fit px-8"
+        />
+        <input type="hidden" name="intent" value={"data"} />
       </div>
-    </Form>
+    </fetcher.Form>
   );
 }
 

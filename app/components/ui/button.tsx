@@ -29,7 +29,7 @@ function Button({
           disabled
             ? "pointer-events-none cursor-default bg-accent/50"
             : "bg-accent"
-        } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`,
+        } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary transition`,
         className,
       )}
     >
@@ -44,7 +44,7 @@ function Button({
           disabled
             ? "pointer-events-none cursor-default bg-accent/50"
             : "bg-accent"
-        } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary`,
+        } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary transition`,
         className,
       )}
       name={name}
