@@ -15,6 +15,7 @@ import {
   DeclarationDetails,
   getAllProfileDetails,
   insertProfileDetails,
+  uploadImage,
   type CurrentAddressDetails,
   type EducationDetails,
   type FamilyDetails,
@@ -125,27 +126,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const INTENTS = ["data", "request"];
   const user = await requireAuthCookie(request);
   try {
     const data = await request.formData();
     console.log("🚀 ~ action ~ data:", data);
     const intent = data.get("intent");
 
-    if (intent !== "data") {
+    if (!INTENTS.includes(String(intent))) {
       return json({ error: "Invalid request method!" });
     }
+
     const dataObject = createObjectFromFormData(
       data,
     ) as unknown as ProfileFormSubmitType;
     console.log(dataObject);
 
-    // make a procedure in queries to uplaod images and then use that func here to upload two imgs,
-    // once link is available, pass it to declaration table and use it
+    const parentSignatureFile = data.get("parentSignature");
+    const candidateSignatureFile = data.get("candidateSignature");
 
-    // return json({ message: "Ok" });
+    if (
+      !parentSignatureFile ||
+      !candidateSignatureFile ||
+      !(parentSignatureFile instanceof File) ||
+      !(candidateSignatureFile instanceof File)
+    ) {
+      return json({ error: "Invalid images!" } as SubmitResponseType, 400);
+    }
     const validation = validateProfileData(dataObject);
     if (Object.keys(validation).length > 0)
       return json({ error: validation } as SubmitResponseType, 400);
+
+    const parentSignature = await uploadImage(parentSignatureFile);
+    const candidateSignature = await uploadImage(candidateSignatureFile);
+
+    if (!parentSignature || !candidateSignature) {
+      return json({ error: "Something went wrong in uploading images!" });
+    }
 
     const personalDetails: PersonalDetails = {
       bloodGroup: dataObject.bloodGroup,
@@ -172,7 +189,6 @@ export async function action({ request }: ActionFunctionArgs) {
       schoolPincode: dataObject.schoolPincode,
     };
 
-    // /*
     const currentAddressDetails: CurrentAddressDetails = {
       type: "current",
       emailId: dataObject.currentEmail,
@@ -223,6 +239,7 @@ export async function action({ request }: ActionFunctionArgs) {
       parentQualification: dataObject.motherQualification,
       parentState: parseInt(dataObject.motherState),
     };
+
     const fatherDetails: FatherDetails = {
       parentType: "father",
       parentAddress: dataObject.fatherAddress,
@@ -240,13 +257,13 @@ export async function action({ request }: ActionFunctionArgs) {
       parentQualification: dataObject.fatherQualification,
       parentState: parseInt(dataObject.fatherState),
     };
+
     const declarationDetails: DeclarationDetails = {
-      candidateSignature: "",
-      parentSignature: "",
+      candidateSignature: candidateSignature ?? "",
+      parentSignature: parentSignature ?? "",
       place: dataObject.place,
       date: new Date(),
     };
-    // */
 
     const submitProfileDetailsRequest = await insertProfileDetails(
       user.id as string,
@@ -287,37 +304,50 @@ function Page() {
   const fetcher = useFetcher<SubmitResponseType>();
   const isSubmitting = fetcher.state !== "idle";
 
-  const [parentSignature, setParentSignature] = useState<Blob>();
-  const [candidateSignature, setCandidateSignature] = useState<Blob>();
-  const parentSignatureURL = useRef<string>();
-  const candidateSignatureURL = useRef<string>();
+  const [parentSignature, setParentSignature] = useState<Blob | string>();
+  const [candidateSignature, setCandidateSignature] = useState<Blob | string>();
 
   useEffect(() => {
-    if (profileDetails) {
-      Object.keys(profileDetails).forEach((data) => {
-        const elem = document.querySelector<HTMLInputElement>(
-          // @ts-expect-error chi!
-          `input[name=${DB_TO_FORM_MAP[data]}]`,
-        );
+    const fillDetails = async () => {
+      if (profileDetails) {
+        Object.keys(profileDetails).forEach((data) => {
+          const elem = document.querySelector<HTMLInputElement>(
+            // @ts-expect-error annoying key error
+            `input[name=${DB_TO_FORM_MAP[data]}]`,
+          );
 
-        if (elem)
-          elem.defaultValue =
-            profileDetails[data as keyof typeof profileDetails];
-      });
-    } //else if localstorage data available use its data to autofill shit
+          if (elem) {
+            elem.defaultValue = String(
+              profileDetails[data as keyof typeof profileDetails],
+            );
+            if (!profileDetails.canEdit) {
+              elem.disabled = true;
+              elem.classList.add("disabled");
+            }
+          }
+        });
+
+        /** Disabling select dropdowns */
+        const selectInputs =
+          document.querySelectorAll<HTMLSelectElement>(`select`);
+        selectInputs.forEach((elem) => {
+          if (!profileDetails.canEdit) {
+            elem.disabled = true;
+            elem.classList.add("disabled");
+          }
+        });
+
+        setParentSignature(profileDetails.parentSignature);
+        setCandidateSignature(profileDetails.candidateSignature);
+      } //else if localstorage data available use its data to autofill shit
+    };
+
+    fillDetails();
   }, [profileDetails]);
 
   if (fetcher.data?.message) {
     toast.success(fetcher.data.message);
-    const imgs = fetcher.data.imgURL;
-
-    if (imgs?.parentSignature)
-      parentSignatureURL.current = imgs?.parentSignature;
-    if (imgs?.candidateSignature)
-      candidateSignatureURL.current = imgs?.candidateSignature;
-
     fetcher.data.message = undefined;
-    fetcher.data.imgURL = undefined;
   }
 
   if (fetcher.data?.error) {
@@ -325,7 +355,7 @@ function Page() {
     if (typeof fetcher.data.error === "string") {
       toast.error(fetcher.data.error);
     } else {
-      fetcher.data?.error &&
+      fetcher.data?.error.motherState &&
         Object.keys(fetcher.data?.error).forEach((err) => {
           const errrs = fetcher.data?.error;
           // @ts-expect-error chi!
@@ -1648,7 +1678,7 @@ function Page() {
         <div className="flex flex-col gap-1">
           <label
             htmlFor="parentSignature"
-            className="flex cursor-pointer flex-col gap-3 text-sm font-normal"
+            className={`flex cursor-pointer flex-col gap-3 text-sm font-normal ${profileDetails && !profileDetails.canEdit && "disabled"}`}
           >
             Signature of the Parent
             <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 placeholder:text-sm">
@@ -1656,7 +1686,11 @@ function Page() {
                 <>
                   <img
                     className={`h-auto ${isSubmitting ? "opacity-60" : ""} w-28`}
-                    src={URL.createObjectURL(parentSignature)}
+                    src={
+                      parentSignature instanceof Blob
+                        ? URL.createObjectURL(parentSignature)
+                        : parentSignature
+                    }
                     alt=""
                   />
                 </>
@@ -1674,13 +1708,14 @@ function Page() {
             type="file"
             accept="image/*"
             name="parentSignature"
+            required
             onChange={handleImageUpload}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label
             htmlFor="candidateSignature"
-            className="flex cursor-pointer flex-col gap-3 text-sm font-normal"
+            className={`flex cursor-pointer flex-col gap-3 text-sm font-normal ${profileDetails && !profileDetails.canEdit && "disabled"}`}
           >
             Signature of the Candidate
             <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 placeholder:text-sm">
@@ -1688,7 +1723,11 @@ function Page() {
                 <>
                   <img
                     className={`h-auto ${isSubmitting ? "opacity-60" : ""} w-28`}
-                    src={URL.createObjectURL(candidateSignature)}
+                    src={
+                      candidateSignature instanceof Blob
+                        ? URL.createObjectURL(candidateSignature)
+                        : candidateSignature
+                    }
                     alt=""
                   />
                 </>
@@ -1705,19 +1744,30 @@ function Page() {
             className="hidden"
             type="file"
             accept="image/*"
+            required
             name="candidateSignature"
             onChange={handleImageUpload}
           />
         </div>
       </div>
 
-      <div className="flex w-full justify-end">
+      <div className="flex w-full justify-end gap-3">
+        {profileDetails && !profileDetails.canEdit && (
+          <Button
+            name="intent"
+            value={"request"}
+            disabled={isSubmitting}
+            variant="secondary"
+            label="Edit request"
+            className={`mb-6 w-fit px-3`}
+          />
+        )}
         <Button
           name="intent"
           value={"data"}
           disabled={isSubmitting}
           label="Submit"
-          className="mb-6 w-fit px-8"
+          className={`mb-6 w-fit px-8 ${profileDetails && !profileDetails.canEdit ? "disabled" : ""}`}
         />
         <input type="hidden" name="intent" value={"data"} />
       </div>

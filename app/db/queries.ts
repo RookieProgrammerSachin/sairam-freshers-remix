@@ -21,6 +21,8 @@ import {
   userTable,
 } from "./schema";
 // import { userData } from ".local/user-data";
+import { initializeApp } from "firebase/app";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 
 /** NOTE: functions with prefix "admin_" must only be used by admin to manipulate data manually and NOT to be exported to be used by
  * server or client or such
@@ -286,6 +288,41 @@ export function getUserDataFromRegisterNo(applicationNo: string) {
   return data;
 }
 
+const slugify = (str: string) =>
+  str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-.]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+export async function uploadImage(imageFile: File) {
+  try {
+    const firebaseConfig = {
+      apiKey: process.env.API_KEY,
+      authDomain: process.env.AUTH_DOMAIN,
+      projectId: process.env.PROJECT_ID,
+      storageBucket: process.env.STORAGE_BUCKET,
+      messagingSenderId: process.env.MESSAGING_SENDER_ID,
+      appId: process.env.APP_ID,
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const slugifiedName = slugify(imageFile.name);
+    const signatureRef = ref(storage, `signatures/${slugifiedName}`);
+    await uploadBytes(signatureRef, imageFile, {
+      contentType: imageFile.type,
+    });
+    const downloadURL = await getDownloadURL(signatureRef);
+    console.log(downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.log("🚀 ~ uploadImage ~ error:", error);
+    return null;
+  }
+}
+
 export async function insertProfileDetails(
   applicationNo: string,
   personalDetails: PersonalDetails,
@@ -359,6 +396,8 @@ export async function insertProfileDetails(
   });
   return `data`;
 }
+
+/** TODO: Query func to request edit */
 
 export async function getAllProfileDetails(userId: string) {
   let result = {};

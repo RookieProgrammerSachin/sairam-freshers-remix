@@ -1,0 +1,1 @@
+ALTER TABLE "edit_permission" ADD COLUMN "has_requested" boolean DEFAULT false;

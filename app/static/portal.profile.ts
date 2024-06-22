@@ -110,6 +110,9 @@ export const DB_TO_FORM_MAP = {
   motherParentState: "motherState",
   motherParentPincode: "motherPincode",
   motherParentPhoneNo: "motherPhoneNo",
+  place: "place",
+  candidateSignature: "candidateSignature",
+  parentSignature: "parentSignature",
 };
 
 export type ProfileDetails = {

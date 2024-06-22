@@ -234,6 +234,7 @@ export const editPermissionTable = pgTable("edit_permission", {
     })
     .notNull(),
   canEdit: boolean("can_edit").default(false),
+  hasRequested: boolean("has_requested").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
 });

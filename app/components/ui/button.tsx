@@ -10,6 +10,7 @@ type ButtonProps = {
   name?: string;
   value?: string;
   to?: string | undefined;
+  variant?: "primary" | "secondary";
 };
 
 function Button({
@@ -19,6 +20,7 @@ function Button({
   label,
   name,
   value,
+  variant = "primary",
   to = undefined,
 }: ButtonProps) {
   return to ? (
@@ -30,6 +32,10 @@ function Button({
             ? "pointer-events-none cursor-default bg-accent/50"
             : "bg-accent"
         } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary transition`,
+        {
+          "bg-white/80 px-8 text-blue-500 outline outline-1 outline-blue-500":
+            variant === "secondary",
+        },
         className,
       )}
     >
@@ -46,6 +52,10 @@ function Button({
             : "bg-accent"
         } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary transition`,
         className,
+        {
+          "bg-white/80 px-8 text-blue-500 outline outline-1 outline-blue-500":
+            variant === "secondary",
+        },
       )}
       name={name}
       value={value}
