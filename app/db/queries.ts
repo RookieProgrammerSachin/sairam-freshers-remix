@@ -4,15 +4,14 @@ import { db } from ".";
 import {
   addressTable,
   AddressType,
-  collegeEnum,
-  deptEnum,
+  declarationTable,
+  DeclarationType,
+  editPermissionTable,
   educationTable,
   EducationType,
   eventGuests,
-  EventGuestsType,
   familyDetailsTable,
   FamilyDetailsType,
-  indianStatesTable,
   parentDetailsTable,
   ParentDetailsType,
   personalDetailsTable,
@@ -265,10 +264,18 @@ export type ProfileDetails = {
   motherParentState: string;
   motherParentPincode: string;
   motherParentPhoneNo: string;
+  parentSignature: string;
+  candidateSignature: string;
+  place: string;
+  canEdit: boolean;
 };
 export type EventDetails = Omit<ScheduleType, "id" | "createdBy"> & {
   eventGuest: string;
 };
+export type DeclarationDetails = Omit<
+  DeclarationType,
+  "id" | "userId" | "createdAt" | "updatedAt"
+>;
 
 /** Query DB to get user data with register no */
 export function getUserDataFromRegisterNo(applicationNo: string) {
@@ -288,6 +295,7 @@ export async function insertProfileDetails(
   familyDetails: FamilyDetails,
   motherDetails: MotherDetails,
   fatherDetails: FatherDetails,
+  declarationDetails: DeclarationDetails,
 ) {
   const user = await db
     .select({ id: userTable.id })
@@ -336,6 +344,17 @@ export async function insertProfileDetails(
         ...fatherDetails,
       },
     ]);
+
+    await tx.insert(declarationTable).values({
+      candidateSignature: declarationDetails.candidateSignature,
+      parentSignature: declarationDetails.parentSignature,
+      place: declarationDetails.place,
+      userId,
+    });
+
+    await tx.insert(editPermissionTable).values({
+      userId,
+    });
     // */
   });
   return `data`;
@@ -354,6 +373,8 @@ export async function getAllProfileDetails(userId: string) {
     .innerJoin(educationTable, eq(educationTable.userId, userTable.id))
     .innerJoin(familyDetailsTable, eq(familyDetailsTable.userId, userTable.id))
     .innerJoin(parentDetailsTable, eq(parentDetailsTable.userId, userTable.id))
+    .leftJoin(declarationTable, eq(declarationTable.userId, userTable.id))
+    .leftJoin(editPermissionTable, eq(editPermissionTable.userId, userTable.id))
     .where(eq(userTable.id, userId));
 
   if (data.length === 0) {
@@ -366,6 +387,8 @@ export async function getAllProfileDetails(userId: string) {
     ...data[0].education,
     ...data[0].family,
     ...data[0].personal_details,
+    ...data[0].declaration,
+    ...data[0].edit_permission,
   };
 
   const currentAddress = {};

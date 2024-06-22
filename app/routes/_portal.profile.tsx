@@ -1,10 +1,4 @@
-import {
-  MetaFunction,
-  useFetcher,
-  useLoaderData,
-  useSubmit,
-} from "@remix-run/react";
-import axios from "axios";
+import { MetaFunction, useFetcher, useLoaderData } from "@remix-run/react";
 import { ErrorBoundary } from "@/root";
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { requireAuthCookie } from "@/utils/auth";
@@ -18,6 +12,7 @@ import { createObjectFromFormData, dateTo_YYYY_MM_DD } from "@/utils";
 import { toast } from "react-toastify";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import {
+  DeclarationDetails,
   getAllProfileDetails,
   insertProfileDetails,
   type CurrentAddressDetails,
@@ -147,7 +142,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // make a procedure in queries to uplaod images and then use that func here to upload two imgs,
     // once link is available, pass it to declaration table and use it
 
-    return json({ message: "Ok" });
+    // return json({ message: "Ok" });
     const validation = validateProfileData(dataObject);
     if (Object.keys(validation).length > 0)
       return json({ error: validation } as SubmitResponseType, 400);
@@ -245,6 +240,12 @@ export async function action({ request }: ActionFunctionArgs) {
       parentQualification: dataObject.fatherQualification,
       parentState: parseInt(dataObject.fatherState),
     };
+    const declarationDetails: DeclarationDetails = {
+      candidateSignature: "",
+      parentSignature: "",
+      place: dataObject.place,
+      date: new Date(),
+    };
     // */
 
     const submitProfileDetailsRequest = await insertProfileDetails(
@@ -256,6 +257,7 @@ export async function action({ request }: ActionFunctionArgs) {
       familyDetails,
       motherDetails,
       fatherDetails,
+      declarationDetails,
     );
 
     if (submitProfileDetailsRequest !== "data")

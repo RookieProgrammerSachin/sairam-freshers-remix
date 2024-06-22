@@ -226,6 +226,18 @@ export const eventGuests = pgTable("event_guests", {
   // maybe in the future add guest design, guest other details, etc.
 });
 
+export const editPermissionTable = pgTable("edit_permission", {
+  id: smallserial("id").unique().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userTable.id, {
+      onUpdate: "cascade",
+    })
+    .notNull(),
+  canEdit: boolean("can_edit").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
+});
+
 /** Im not even sure if I need these types anywhere, let's see anyway. EDIT: These have really been helpful */
 export type PersonalDetailsType = typeof personalDetailsTable.$inferSelect;
 export type EducationType = typeof educationTable.$inferSelect;
