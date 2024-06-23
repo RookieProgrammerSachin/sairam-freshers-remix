@@ -12,6 +12,17 @@ export default {
       },
       animation: {
         "fade-in": "fade-in 0.5s linear",
+        spin: "spin 1s linear infinite",
+      },
+      keyframes: {
+        "fade-in": {
+          from: {
+            opacity: "0",
+          },
+          to: {
+            opacity: "100",
+          },
+        },
       },
     },
   },

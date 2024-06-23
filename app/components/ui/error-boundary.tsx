@@ -7,7 +7,7 @@ export function ErrorCatch() {
 
   if (isRouteErrorResponse(error)) {
     return (
-      <div className="m-1 rounded-lg bg-red-100 p-4 outline outline-1 outline-red-500">
+      <div className="m-1 h-full w-full max-w-[80vw] flex-1 rounded-lg bg-red-100 p-4 outline outline-1 outline-red-500 md:h-full md:max-w-full">
         <div className="my-6 flex w-full flex-col items-center justify-center">
           <RiErrorWarningLine size={40} color="red" />
           <h1 className="text-xl font-bold text-red-500">
@@ -22,7 +22,7 @@ export function ErrorCatch() {
     );
   } else if (error instanceof Error) {
     return (
-      <div className="m-1 h-full max-w-full flex-1 rounded-lg bg-red-100 p-4 outline outline-1 outline-red-500">
+      <div className="m-1 max-w-[80vw] flex-1 rounded-lg bg-red-100 p-4 outline outline-1 outline-red-500 md:h-full md:max-w-full">
         <div className="my-6 flex w-full flex-col items-center justify-center">
           <VscBracketError size={40} color="red" />
           <h1 className="text-xl font-bold text-red-500">

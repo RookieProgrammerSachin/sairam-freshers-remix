@@ -299,6 +299,7 @@ function SchedulePage() {
               }}
               placeholder="Choose department"
               data={ALL_DEPARTMENTS}
+              searchable
               required={true}
               name="eventDept"
               styles={{

@@ -1,6 +1,7 @@
 import { cn } from "@/utils";
 import { Link } from "@remix-run/react";
 import { ReactNode } from "react";
+import Spinner from "./spinner";
 
 type ButtonProps = {
   disabled?: boolean;
@@ -16,7 +17,7 @@ type ButtonProps = {
 function Button({
   disabled = false,
   className,
-  disabledComponent = <span className="loader"></span>,
+  disabledComponent = <Spinner />,
   label,
   name,
   value,

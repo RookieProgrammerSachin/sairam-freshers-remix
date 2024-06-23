@@ -78,7 +78,7 @@ export default function Index() {
   const submitAction = useActionData<typeof action>();
   const navigation = useNavigation();
 
-  const isButtonDisabled = navigation.state === "submitting";
+  const isButtonDisabled = navigation.state !== "idle";
 
   if (submitAction?.error.general) {
     toast.error(submitAction.error.general);

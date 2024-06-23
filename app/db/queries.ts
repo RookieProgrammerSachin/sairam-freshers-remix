@@ -412,7 +412,7 @@ export async function getAllProfileDetails(
   applicationNo?: string,
 ) {
   let result = {};
-  if (!userId && !applicationNo) return result;
+  // if (!userId && !applicationNo) return result;
   const data = await db
     .select()
     .from(userTable)
@@ -445,6 +445,7 @@ export async function getAllProfileDetails(
     ...data[0].personal_details,
     ...data[0].declaration,
     ...data[0].edit_permission,
+    name: data[0].users.name,
   };
 
   const currentAddress = {};
