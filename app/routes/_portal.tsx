@@ -31,7 +31,11 @@ function Layout() {
     <>
       <nav className="nav border-silver z-10 grid w-full grid-rows-3 place-items-center items-center justify-center gap-4 border px-6 py-2 md:grid-cols-[0.7fr_1fr_0.5fr] md:grid-rows-none md:gap-8 md:px-12">
         {/* College logo */}
-        <img src="/clg.png" alt="Sairam Freshers" className="w-[12rem]" />
+        <img
+          src="/clg.png"
+          alt="Sairam Freshers"
+          className="h-auto w-[12rem]"
+        />
 
         {/* Title */}
         <h1 className="w-fit text-2xl font-semibold">

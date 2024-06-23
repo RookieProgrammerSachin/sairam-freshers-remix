@@ -1,7 +1,8 @@
-import { getAllProfileDetails, getAllUsers } from "@/db/queries";
+import { getAllProfileDetails } from "@/db/queries";
 import { requireAdminCookie } from "@/utils/auth";
 import { LoaderFunctionArgs, MetaFunction, redirect } from "@remix-run/node";
-import { useLoaderData, useParams } from "@remix-run/react";
+import { Link, useLoaderData, useParams } from "@remix-run/react";
+import { BiChevronLeft } from "react-icons/bi";
 
 export const meta: MetaFunction = ({ params }) => {
   return [
@@ -24,6 +25,12 @@ function AdminUserDetails() {
 
   return (
     <div className="flex w-full flex-col">
+      <Link
+        to={"/admin/users"}
+        className="flex w-fit items-center text-blue-500"
+      >
+        <BiChevronLeft /> Back
+      </Link>
       {!profileDetails && (
         <h1>{params.applicationNo} has not filled all personal details</h1>
       )}

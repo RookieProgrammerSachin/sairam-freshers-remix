@@ -8,6 +8,12 @@
   }
 }
 
+body {
+  overflow-y: scroll; /* Always show scrollbar, even if content doesn't overflow */
+  margin-right: 0 !important; /* Ensure no right margin is added when scrollbar appears */
+  scroll-behavior: smooth;
+}
+
 ::-webkit-scrollbar {
   width: 8px; /* Width of the scrollbar */
   height: 6px;
