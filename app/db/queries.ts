@@ -23,6 +23,7 @@ import {
 // import { userData } from ".local/user-data";
 import { initializeApp } from "firebase/app";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { nanoid } from "nanoid";
 
 /** NOTE: functions with prefix "admin_" must only be used by admin to manipulate data manually and NOT to be exported to be used by
  * server or client or such
@@ -288,6 +289,11 @@ export function getUserDataFromRegisterNo(applicationNo: string) {
   return data;
 }
 
+/** Get all users list */
+export async function getAllUsers() {
+  return await db.query.userTable.findMany({ orderBy: userTable.name });
+}
+
 const slugify = (str: string) =>
   str
     .toLowerCase()
@@ -310,12 +316,14 @@ export async function uploadImage(imageFile: File) {
     const app = initializeApp(firebaseConfig);
     const storage = getStorage(app);
     const slugifiedName = slugify(imageFile.name);
-    const signatureRef = ref(storage, `signatures/${slugifiedName}`);
+    const signatureRef = ref(
+      storage,
+      `signatures/${slugifiedName}_${nanoid(16)}`,
+    );
     await uploadBytes(signatureRef, imageFile, {
       contentType: imageFile.type,
     });
     const downloadURL = await getDownloadURL(signatureRef);
-    console.log(downloadURL);
     return downloadURL;
   } catch (error) {
     console.log("🚀 ~ uploadImage ~ error:", error);
@@ -399,8 +407,12 @@ export async function insertProfileDetails(
 
 /** TODO: Query func to request edit */
 
-export async function getAllProfileDetails(userId: string) {
+export async function getAllProfileDetails(
+  userId?: string,
+  applicationNo?: string,
+) {
   let result = {};
+  if (!userId && !applicationNo) return result;
   const data = await db
     .select()
     .from(userTable)
@@ -414,7 +426,12 @@ export async function getAllProfileDetails(userId: string) {
     .innerJoin(parentDetailsTable, eq(parentDetailsTable.userId, userTable.id))
     .leftJoin(declarationTable, eq(declarationTable.userId, userTable.id))
     .leftJoin(editPermissionTable, eq(editPermissionTable.userId, userTable.id))
-    .where(eq(userTable.id, userId));
+    .where(
+      eq(
+        applicationNo ? userTable.applicationNo : userTable.id,
+        applicationNo ? applicationNo : userId!,
+      ),
+    );
 
   if (data.length === 0) {
     return false;

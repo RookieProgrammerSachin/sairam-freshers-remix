@@ -27,4 +27,8 @@ export const ADMIN_NAV_LINKS = [
     label: "Edit Meeting Schedule",
     link: "/admin/schedule",
   },
+  {
+    label: "View Users",
+    link: "/admin/users",
+  },
 ];

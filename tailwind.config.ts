@@ -10,6 +10,9 @@ export default {
         secondary: "#333",
         card: "#fbfbfb",
       },
+      animation: {
+        "fade-in": "fade-in 0.5s linear",
+      },
     },
   },
   plugins: [],
