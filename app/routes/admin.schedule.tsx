@@ -9,3 +9,5 @@ function ScheduleLayout() {
 }
 
 export default ScheduleLayout;
+
+export { ErrorCatch as ErrorBoundary } from "@/components/ui/error-boundary";

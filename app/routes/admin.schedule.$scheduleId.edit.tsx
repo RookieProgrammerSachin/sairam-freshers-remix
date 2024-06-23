@@ -348,3 +348,5 @@ function ScheduleEditPage() {
 }
 
 export default ScheduleEditPage;
+
+export { ErrorCatch as ErrorBoundary } from "@/components/ui/error-boundary";

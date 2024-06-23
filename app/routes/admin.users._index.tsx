@@ -38,7 +38,7 @@ function AdminUsersIndex() {
         }
         name="college-search"
         id="search-input"
-        placeholder="Search by College name, College code, Branch name, District"
+        placeholder="Search by Student name"
         className="md:focus:outline-mantine-blue mt-5 rounded-md bg-white px-3 py-2 outline outline-1 outline-gray-300 placeholder:text-sm focus:outline-1 focus:outline-blue-400 md:outline-gray-200"
       />
       <div className="mt-6 flex w-full max-w-[80vw] flex-col overflow-x-scroll transition-all md:overflow-x-hidden">
@@ -62,3 +62,5 @@ function AdminUsersIndex() {
 }
 
 export default AdminUsersIndex;
+
+export { ErrorCatch as ErrorBoundary } from "@/components/ui/error-boundary";

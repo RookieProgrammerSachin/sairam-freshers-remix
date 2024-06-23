@@ -5,3 +5,5 @@ function LayoutUsers() {
 }
 
 export default LayoutUsers;
+
+export { ErrorCatch as ErrorBoundary } from "@/components/ui/error-boundary";
