@@ -1,7 +1,8 @@
 import { cn } from "@/utils";
 import { Link } from "@remix-run/react";
-import { ReactNode } from "react";
+import { MouseEvent, ReactNode } from "react";
 import Spinner from "./spinner";
+import { ButtonGroup } from "@mantine/core";
 
 type ButtonProps = {
   disabled?: boolean;
@@ -12,6 +13,8 @@ type ButtonProps = {
   value?: string;
   to?: string | undefined;
   variant?: "primary" | "secondary";
+  type?: "button" | "submit";
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 function Button({
@@ -23,6 +26,8 @@ function Button({
   value,
   variant = "primary",
   to = undefined,
+  type = "submit",
+  onClick,
 }: ButtonProps) {
   return to ? (
     <Link
@@ -30,14 +35,17 @@ function Button({
       className={cn(
         `${
           disabled
-            ? "pointer-events-none cursor-default bg-accent/50"
+            ? "pointer-events-none cursor-default bg-accent/50 opacity-60"
             : "bg-accent"
         } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary transition`,
         {
-          "bg-white/80 px-8 text-blue-500 outline outline-1 outline-blue-500":
+          "bg-white/80 px-8 text-blue-500 outline-blue-500":
             variant === "secondary",
         },
         className,
+        {
+          "outline outline-1": variant === "secondary",
+        },
       )}
     >
       {disabled && disabledComponent}
@@ -45,21 +53,25 @@ function Button({
     </Link>
   ) : (
     <button
-      type="submit"
+      type={type}
       className={cn(
         `${
           disabled
-            ? "pointer-events-none cursor-default bg-accent/50"
+            ? "pointer-events-none cursor-default bg-accent/50 opacity-60"
             : "bg-accent"
         } flex w-full items-center justify-center gap-2 rounded-full border-none px-4 py-2 text-center text-primary transition`,
+        {
+          "bg-white/80 px-8 text-blue-500 outline-blue-500":
+            variant === "secondary",
+        },
         className,
         {
-          "bg-white/80 px-8 text-blue-500 outline outline-1 outline-blue-500":
-            variant === "secondary",
+          "outline outline-1": variant === "secondary",
         },
       )}
       name={name}
       value={value}
+      onClick={onClick}
     >
       {disabled && disabledComponent}
       {label}

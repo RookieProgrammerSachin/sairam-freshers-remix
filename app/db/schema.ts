@@ -248,6 +248,7 @@ export type ParentDetailsType = typeof parentDetailsTable.$inferSelect;
 export type DeclarationType = typeof declarationTable.$inferSelect;
 export type ScheduleType = typeof scheduleTable.$inferSelect;
 export type EventGuestsType = typeof eventGuests.$inferSelect;
+export type EditPermissionType = typeof editPermissionTable.$inferSelect;
 
 /** RELATIONS FOR TABLES
  * ``only`` used if I use db.query.<tableName>. so on

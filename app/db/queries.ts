@@ -7,6 +7,7 @@ import {
   declarationTable,
   DeclarationType,
   editPermissionTable,
+  EditPermissionType,
   educationTable,
   EducationType,
   eventGuests,
@@ -271,6 +272,7 @@ export type ProfileDetails = {
   candidateSignature: string;
   place: string;
   canEdit: boolean;
+  hasRequested: boolean;
 };
 export type EventDetails = Omit<ScheduleType, "id" | "createdBy"> & {
   eventGuest: string;
@@ -406,6 +408,43 @@ export async function insertProfileDetails(
 }
 
 /** TODO: Query func to request edit */
+export async function requestEdit(userId: string) {
+  if (!userId) throw new Error("No user id found!");
+  let permissions: EditPermissionType[];
+  permissions = await db
+    .select()
+    .from(editPermissionTable)
+    .where(eq(editPermissionTable.userId, userId));
+  if (permissions.length !== 1) {
+    permissions = await db
+      .insert(editPermissionTable)
+      .values({ userId })
+      .returning();
+  }
+  if (permissions[0].canEdit || permissions[0].hasRequested) return false;
+  const updatedPermissions = await db
+    .update(editPermissionTable)
+    .set({ hasRequested: true })
+    .where(eq(editPermissionTable.userId, userId))
+    .returning();
+  return updatedPermissions;
+}
+
+export async function processRequestEdit(userId: string, value: boolean) {
+  const permissions = await db
+    .select()
+    .from(editPermissionTable)
+    .where(eq(editPermissionTable.userId, userId));
+
+  if (permissions[0].hasRequested && !permissions[0].canEdit) {
+    return await db
+      .update(editPermissionTable)
+      .set({ canEdit: value, hasRequested: false })
+      .where(eq(editPermissionTable.userId, userId))
+      .returning();
+  }
+  return false;
+}
 
 export async function getAllProfileDetails(
   userId?: string,
@@ -468,33 +507,41 @@ export async function getAllProfileDetails(
     (x) => x.parents.parentType === "mother",
   )?.parents;
 
+  // @ts-expect-error profile details big error
   Object.keys(currentAddressFromData).forEach((key) => {
     const newKey = "current" + key.at(0)?.toUpperCase() + key.slice(1);
     currentAddress[newKey as keyof typeof currentAddressFromData] =
+      // @ts-expect-error profile details big error
       currentAddressFromData[key as keyof typeof currentAddressFromData];
   });
 
+  // @ts-expect-error profile details big error
   Object.keys(permanentAddressFromData).forEach((key) => {
     permanentAddress[
       ("permanent" +
         key.at(0)?.toUpperCase() +
         key.slice(1)) as keyof typeof permanentAddressFromData
+      // @ts-expect-error profile details big error
     ] = permanentAddressFromData[key as keyof typeof permanentAddressFromData];
   });
 
+  // @ts-expect-error profile details big error
   Object.keys(fatherDetailsFromData).forEach((key) => {
     fatherDetails[
       ("father" +
         key.at(0)?.toUpperCase() +
         key.slice(1)) as keyof typeof fatherDetailsFromData
+      // @ts-expect-error profile details big error
     ] = fatherDetailsFromData[key as keyof typeof fatherDetailsFromData];
   });
 
+  // @ts-expect-error profile details big error
   Object.keys(motherDetailsFromData).forEach((key) => {
     motherDetails[
       ("mother" +
         key.at(0)?.toUpperCase() +
         key.slice(1)) as keyof typeof motherDetailsFromData
+      // @ts-expect-error profile details big error
     ] = motherDetailsFromData[key as keyof typeof motherDetailsFromData];
   });
 

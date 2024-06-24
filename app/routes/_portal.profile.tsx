@@ -15,6 +15,7 @@ import {
   DeclarationDetails,
   getAllProfileDetails,
   insertProfileDetails,
+  requestEdit,
   uploadImage,
   type CurrentAddressDetails,
   type EducationDetails,
@@ -27,6 +28,7 @@ import {
 import { ProfileFormErrorType, validateProfileData } from "@/utils/validate";
 import { nanoid } from "nanoid";
 import { LuUploadCloud } from "react-icons/lu";
+import Spinner from "@/components/ui/spinner";
 
 export type SubmitResponseType = {
   message?: string;
@@ -126,7 +128,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const INTENTS = ["data", "request"];
+  const INTENTS = ["data", "request", "edit"];
   const user = await requireAuthCookie(request);
   try {
     const data = await request.formData();
@@ -137,152 +139,167 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ error: "Invalid request method!" });
     }
 
-    const dataObject = createObjectFromFormData(
-      data,
-    ) as unknown as ProfileFormSubmitType;
-    console.log(dataObject);
+    if (intent === "data") {
+      const dataObject = createObjectFromFormData(
+        data,
+      ) as unknown as ProfileFormSubmitType;
+      console.log(dataObject);
 
-    const parentSignatureFile = data.get("parentSignature");
-    const candidateSignatureFile = data.get("candidateSignature");
+      const parentSignatureFile = data.get("parentSignature");
+      const candidateSignatureFile = data.get("candidateSignature");
 
-    if (
-      !parentSignatureFile ||
-      !candidateSignatureFile ||
-      !(parentSignatureFile instanceof File) ||
-      !(candidateSignatureFile instanceof File)
-    ) {
-      return json({ error: "Invalid images!" } as SubmitResponseType, 400);
+      if (
+        !parentSignatureFile ||
+        !candidateSignatureFile ||
+        !(parentSignatureFile instanceof File) ||
+        !(candidateSignatureFile instanceof File)
+      ) {
+        return json({ error: "Invalid images!" } as SubmitResponseType, 400);
+      }
+      const validation = validateProfileData(dataObject);
+      if (Object.keys(validation).length > 0)
+        return json({ error: validation } as SubmitResponseType, 400);
+
+      const parentSignature = await uploadImage(parentSignatureFile);
+      const candidateSignature = await uploadImage(candidateSignatureFile);
+
+      if (!parentSignature || !candidateSignature) {
+        return json({ error: "Something went wrong in uploading images!" });
+      }
+
+      const personalDetails: PersonalDetails = {
+        bloodGroup: dataObject.bloodGroup,
+        community: dataObject.community,
+        dateOfBirth: new Date(dataObject.dob).toDateString(),
+        hostelRequired: dataObject.hostelRequired === "yes",
+        motherTongue: dataObject.motherTongue,
+        name: dataObject.name,
+        nationality: dataObject.nationality,
+        religion: dataObject.religion,
+      };
+      const educationDetails: EducationDetails = {
+        appliedDegree: dataObject.appliedDegree,
+        lastQualifying: dataObject.lastQualifying,
+        schoolBranch: dataObject.schoolBranch,
+        schoolName: dataObject.schoolName,
+        boardName: dataObject.boardName,
+        langMedium: dataObject.langMedium,
+        regNo: dataObject.regNo,
+        gradePercentage: dataObject.gradePercentage,
+        dateOfPassing: dataObject.dateOfPassing,
+        schoolAddress: dataObject.schoolAddress,
+        schoolCity: dataObject.schoolCity,
+        schoolPincode: dataObject.schoolPincode,
+      };
+
+      const currentAddressDetails: CurrentAddressDetails = {
+        type: "current",
+        emailId: dataObject.currentEmail,
+        addressLine1: dataObject.currentAddress,
+        addressLine2: dataObject.currentArea,
+        city: dataObject.currentCity,
+        pincode: dataObject.currentPincode,
+        state: parseInt(dataObject.currentState),
+        country: dataObject.currentCountry,
+        mobileNumber: dataObject.currentMobile,
+        phoneNo: dataObject.currentLandLine ?? null,
+      };
+
+      const permanentAddressDetails: PermanentAddressDetails = {
+        type: "permanent",
+        emailId: dataObject.permanentEmail,
+        addressLine1: dataObject.permanentAddress,
+        addressLine2: dataObject.permanentArea,
+        city: dataObject.permanentCity,
+        pincode: dataObject.permanentPincode,
+        state: parseInt(dataObject.permanentState),
+        country: dataObject.permanentCountry,
+        mobileNumber: dataObject.permanentMobile,
+        phoneNo: dataObject.permanentLandLine ?? null,
+      };
+
+      const familyDetails: FamilyDetails = {
+        noOfBrothers: parseInt(dataObject.noOfBrothers),
+        noOfSisters: parseInt(dataObject.noOfSisters),
+        siblingStudyingCount: parseInt(dataObject.siblingStudyingCount),
+        siblingStudyingDetails: dataObject.siblingStudyingDetails,
+      };
+
+      const motherDetails: MotherDetails = {
+        parentType: "mother",
+        parentAddress: dataObject.motherAddress,
+        parentAnnualIncome: dataObject.motherAnnualIncome,
+        parentCity: dataObject.motherCityName,
+        parentDesignation: dataObject.motherDesignation,
+        parentEmailId: dataObject.motherEmail,
+        parentEmpId: dataObject.motherEmpId,
+        parentMobileNo: dataObject.motherMobile,
+        parentName: dataObject.motherName,
+        parentOccupation: dataObject.motherOccupation,
+        parentOrganization: dataObject.motherOrganization,
+        parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
+        parentPincode: dataObject.motherPincode,
+        parentQualification: dataObject.motherQualification,
+        parentState: parseInt(dataObject.motherState),
+      };
+
+      const fatherDetails: FatherDetails = {
+        parentType: "father",
+        parentAddress: dataObject.fatherAddress,
+        parentAnnualIncome: dataObject.fatherAnnualIncome,
+        parentCity: dataObject.fatherCityName,
+        parentDesignation: dataObject.fatherDesignation,
+        parentEmailId: dataObject.fatherEmail,
+        parentEmpId: dataObject.fatherEmpId,
+        parentMobileNo: dataObject.fatherMobile,
+        parentName: dataObject.fatherName,
+        parentOccupation: dataObject.fatherOccupation,
+        parentOrganization: dataObject.fatherOrganization,
+        parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
+        parentPincode: dataObject.fatherPincode,
+        parentQualification: dataObject.fatherQualification,
+        parentState: parseInt(dataObject.fatherState),
+      };
+
+      const declarationDetails: DeclarationDetails = {
+        candidateSignature: candidateSignature ?? "",
+        parentSignature: parentSignature ?? "",
+        place: dataObject.place,
+        date: new Date(),
+      };
+
+      const submitProfileDetailsRequest = await insertProfileDetails(
+        user.id as string,
+        personalDetails,
+        educationDetails,
+        currentAddressDetails,
+        permanentAddressDetails,
+        familyDetails,
+        motherDetails,
+        fatherDetails,
+        declarationDetails,
+      );
+
+      if (submitProfileDetailsRequest !== "data")
+        return json({
+          error: "Something went wrong with saving your data",
+        }) as SubmitResponseType;
+
+      return json({ message: "Okay!" }) as SubmitResponseType;
+    } else if (intent === "request") {
+      // procedure to call edit function
+      const response = await requestEdit(user.userId ?? "");
+      if (!response)
+        return json({
+          error: "Request already processed. Please continue editing.",
+        } as SubmitResponseType);
+      if (response.length === 1 && response[0].hasRequested)
+        return json({ message: "Request has been sent" } as SubmitResponseType);
+      else
+        return json({
+          error: "Request was sent, but we were unable to process it",
+        } as SubmitResponseType);
     }
-    const validation = validateProfileData(dataObject);
-    if (Object.keys(validation).length > 0)
-      return json({ error: validation } as SubmitResponseType, 400);
-
-    const parentSignature = await uploadImage(parentSignatureFile);
-    const candidateSignature = await uploadImage(candidateSignatureFile);
-
-    if (!parentSignature || !candidateSignature) {
-      return json({ error: "Something went wrong in uploading images!" });
-    }
-
-    const personalDetails: PersonalDetails = {
-      bloodGroup: dataObject.bloodGroup,
-      community: dataObject.community,
-      dateOfBirth: new Date(dataObject.dob).toDateString(),
-      hostelRequired: dataObject.hostelRequired === "yes",
-      motherTongue: dataObject.motherTongue,
-      name: dataObject.name,
-      nationality: dataObject.nationality,
-      religion: dataObject.religion,
-    };
-    const educationDetails: EducationDetails = {
-      appliedDegree: dataObject.appliedDegree,
-      lastQualifying: dataObject.lastQualifying,
-      schoolBranch: dataObject.schoolBranch,
-      schoolName: dataObject.schoolName,
-      boardName: dataObject.boardName,
-      langMedium: dataObject.langMedium,
-      regNo: dataObject.regNo,
-      gradePercentage: dataObject.gradePercentage,
-      dateOfPassing: dataObject.dateOfPassing,
-      schoolAddress: dataObject.schoolAddress,
-      schoolCity: dataObject.schoolCity,
-      schoolPincode: dataObject.schoolPincode,
-    };
-
-    const currentAddressDetails: CurrentAddressDetails = {
-      type: "current",
-      emailId: dataObject.currentEmail,
-      addressLine1: dataObject.currentAddress,
-      addressLine2: dataObject.currentArea,
-      city: dataObject.currentCity,
-      pincode: dataObject.currentPincode,
-      state: parseInt(dataObject.currentState),
-      country: dataObject.currentCountry,
-      mobileNumber: dataObject.currentMobile,
-      phoneNo: dataObject.currentLandLine ?? null,
-    };
-
-    const permanentAddressDetails: PermanentAddressDetails = {
-      type: "permanent",
-      emailId: dataObject.permanentEmail,
-      addressLine1: dataObject.permanentAddress,
-      addressLine2: dataObject.permanentArea,
-      city: dataObject.permanentCity,
-      pincode: dataObject.permanentPincode,
-      state: parseInt(dataObject.permanentState),
-      country: dataObject.permanentCountry,
-      mobileNumber: dataObject.permanentMobile,
-      phoneNo: dataObject.permanentLandLine ?? null,
-    };
-
-    const familyDetails: FamilyDetails = {
-      noOfBrothers: parseInt(dataObject.noOfBrothers),
-      noOfSisters: parseInt(dataObject.noOfSisters),
-      siblingStudyingCount: parseInt(dataObject.siblingStudyingCount),
-      siblingStudyingDetails: dataObject.siblingStudyingDetails,
-    };
-
-    const motherDetails: MotherDetails = {
-      parentType: "mother",
-      parentAddress: dataObject.motherAddress,
-      parentAnnualIncome: dataObject.motherAnnualIncome,
-      parentCity: dataObject.motherCityName,
-      parentDesignation: dataObject.motherDesignation,
-      parentEmailId: dataObject.motherEmail,
-      parentEmpId: dataObject.motherEmpId,
-      parentMobileNo: dataObject.motherMobile,
-      parentName: dataObject.motherName,
-      parentOccupation: dataObject.motherOccupation,
-      parentOrganization: dataObject.motherOrganization,
-      parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
-      parentPincode: dataObject.motherPincode,
-      parentQualification: dataObject.motherQualification,
-      parentState: parseInt(dataObject.motherState),
-    };
-
-    const fatherDetails: FatherDetails = {
-      parentType: "father",
-      parentAddress: dataObject.fatherAddress,
-      parentAnnualIncome: dataObject.fatherAnnualIncome,
-      parentCity: dataObject.fatherCityName,
-      parentDesignation: dataObject.fatherDesignation,
-      parentEmailId: dataObject.fatherEmail,
-      parentEmpId: dataObject.fatherEmpId,
-      parentMobileNo: dataObject.fatherMobile,
-      parentName: dataObject.fatherName,
-      parentOccupation: dataObject.fatherOccupation,
-      parentOrganization: dataObject.fatherOrganization,
-      parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
-      parentPincode: dataObject.fatherPincode,
-      parentQualification: dataObject.fatherQualification,
-      parentState: parseInt(dataObject.fatherState),
-    };
-
-    const declarationDetails: DeclarationDetails = {
-      candidateSignature: candidateSignature ?? "",
-      parentSignature: parentSignature ?? "",
-      place: dataObject.place,
-      date: new Date(),
-    };
-
-    const submitProfileDetailsRequest = await insertProfileDetails(
-      user.id as string,
-      personalDetails,
-      educationDetails,
-      currentAddressDetails,
-      permanentAddressDetails,
-      familyDetails,
-      motherDetails,
-      fatherDetails,
-      declarationDetails,
-    );
-
-    if (submitProfileDetailsRequest !== "data")
-      return json({
-        error: "Something went wrong with saving your data",
-      }) as SubmitResponseType;
-
-    return json({ message: "Okay!" }) as SubmitResponseType;
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
     return json({ error: "Server error!" }) as SubmitResponseType;
@@ -1754,22 +1771,42 @@ function Page() {
       <div className="flex w-full justify-end gap-3">
         {profileDetails && !profileDetails.canEdit && (
           <Button
-            name="intent"
-            value={"request"}
-            disabled={isSubmitting}
+            disabled={
+              (isSubmitting && fetcher.formData?.get("intent") === "request") ||
+              profileDetails.hasRequested
+            }
+            disabledComponent={
+              profileDetails.hasRequested ? (
+                <></>
+              ) : (
+                <Spinner className="border-blue-500" />
+              )
+            }
             variant="secondary"
-            label="Edit request"
-            className={`mb-6 w-fit px-3`}
+            label={
+              profileDetails.hasRequested
+                ? "Edit request being processed"
+                : "Edit request"
+            }
+            type="button"
+            className={`mb-6 w-fit px-3 transition-all`}
+            onClick={() => {
+              const requestForm = new FormData();
+              requestForm.append("intent", "request");
+              fetcher.submit(requestForm, { navigate: false, method: "POST" });
+            }}
           />
         )}
         <Button
           name="intent"
-          value={"data"}
-          disabled={isSubmitting}
+          value={profileDetails && profileDetails.canEdit ? "edit" : "data"}
+          disabled={
+            isSubmitting &&
+            ["data", "edit"].includes(String(fetcher.formData?.get("intent")))
+          }
           label="Submit"
           className={`mb-6 w-fit px-8 ${profileDetails && !profileDetails.canEdit ? "disabled" : ""}`}
         />
-        <input type="hidden" name="intent" value={"data"} />
       </div>
     </fetcher.Form>
   );
