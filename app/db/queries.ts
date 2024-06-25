@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 // import crypto from "node:crypto";
 import { db } from ".";
 import {
@@ -466,6 +466,16 @@ export async function updateProfileDetails(
   });
 
   return "edit";
+}
+
+export async function getAllEditRequests() {
+  const data = await db
+    .select()
+    .from(editPermissionTable)
+    .leftJoin(userTable, eq(editPermissionTable.userId, userTable.id))
+    .orderBy(desc(editPermissionTable.updatedAt))
+    .where(eq(editPermissionTable.hasRequested, true));
+  return data.map((d) => d.users);
 }
 
 export async function requestEdit(userId: string) {

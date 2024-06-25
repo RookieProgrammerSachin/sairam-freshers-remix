@@ -1,5 +1,5 @@
 import ScheduleLoader from "@/components/ScheduleLoader";
-import { getAllUsers } from "@/db/queries";
+import { getAllEditRequests, getAllUsers } from "@/db/queries";
 import { requireAdminCookie } from "@/utils/auth";
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Await, defer, useLoaderData } from "@remix-run/react";
@@ -16,19 +16,17 @@ export const meta: MetaFunction = () => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await requireAdminCookie(request);
-  return defer({ allUsers: getAllUsers() });
+  return defer({ allRequests: getAllEditRequests() });
 };
 
 function AdminUsersIndex() {
-  const { allUsers } = useLoaderData<typeof loader>();
+  const { allRequests } = useLoaderData<typeof loader>();
   const [userSearchKey, setUserSearchKey] = useState("");
   const [isSearching, startSearchTransition] = useTransition();
 
   return (
     <div className="flex w-full flex-col">
-      <h1 className="text-2xl font-semibold">
-        Click on each student for more details
-      </h1>
+      <h1 className="text-2xl font-semibold">Edit requests by students</h1>
       <input
         type="search"
         onChange={(event) =>
@@ -49,10 +47,10 @@ function AdminUsersIndex() {
             </div>
           }
         >
-          <Await resolve={allUsers}>
-            {(allUsers) => (
+          <Await resolve={allRequests}>
+            {(allRequests) => (
               //@ts-expect-error JSONify edho tholla
-              <UserTable allUsers={allUsers} searchKey={userSearchKey} />
+              <UserTable allUsers={allRequests} searchKey={userSearchKey} />
             )}
           </Await>
         </Suspense>
