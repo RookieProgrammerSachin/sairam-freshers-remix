@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import crypto from "node:crypto";
+import { and, eq } from "drizzle-orm";
+// import crypto from "node:crypto";
 import { db } from ".";
 import {
   addressTable,
@@ -30,45 +30,6 @@ import { nanoid } from "nanoid";
  * server or client or such
  * Also, commenting all such admin_ function because I dont event want to accidentally call and to totally make sure what I am doing with admin_ functions
  */
-
-const INDIAN_STATES = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jammu & Kashmir",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Maharashtra",
-  "Madhya Pradesh",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Tripura",
-  "Telangana",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Andaman & Nicobar (UT)",
-  "Chandigarh (UT)",
-  "Dadra & Nagar Haveli (UT)",
-  "Daman & Diu (UT)",
-  "Lakshadweep (UT)",
-  "Puducherry (UT)",
-];
 
 /** Insert sample user data */
 /* async function admin_insertSample() {
@@ -407,7 +368,106 @@ export async function insertProfileDetails(
   return `data`;
 }
 
-/** TODO: Query func to request edit */
+export async function updateProfileDetails(
+  applicationNo: string,
+  personalDetails: PersonalDetails,
+  educationDetails: EducationDetails,
+  currentAddressDetails: CurrentAddressDetails,
+  permanentAddressDetails: PermanentAddressDetails,
+  familyDetails: FamilyDetails,
+  motherDetails: MotherDetails,
+  fatherDetails: FatherDetails,
+  declarationDetails: DeclarationDetails,
+) {
+  const user = await db
+    .select({ id: userTable.id })
+    .from(userTable)
+    .where(eq(userTable.applicationNo, applicationNo));
+  if (user.length !== 1) return null;
+
+  const userId = user[0].id;
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(personalDetailsTable)
+      .set({
+        ...personalDetails,
+      })
+      .where(eq(personalDetailsTable.userId, userId));
+
+    await tx
+      .update(educationTable)
+      .set({
+        ...educationDetails,
+      })
+      .where(eq(educationTable.userId, userId));
+
+    await tx
+      .update(addressTable)
+      .set({
+        ...currentAddressDetails,
+      })
+      .where(
+        and(eq(addressTable.type, "current"), eq(addressTable.userId, userId)),
+      );
+
+    await tx
+      .update(addressTable)
+      .set({
+        ...permanentAddressDetails,
+      })
+      .where(
+        and(
+          eq(addressTable.type, "permanent"),
+          eq(addressTable.userId, userId),
+        ),
+      );
+
+    await tx
+      .update(familyDetailsTable)
+      .set({
+        ...familyDetails,
+      })
+      .where(eq(familyDetailsTable.userId, userId));
+
+    await tx
+      .update(parentDetailsTable)
+      .set({
+        ...motherDetails,
+      })
+      .where(
+        and(
+          eq(parentDetailsTable.parentType, "mother"),
+          eq(parentDetailsTable.userId, userId),
+        ),
+      );
+
+    await tx
+      .update(parentDetailsTable)
+      .set({
+        ...fatherDetails,
+      })
+      .where(
+        and(
+          eq(parentDetailsTable.parentType, "father"),
+          eq(parentDetailsTable.userId, userId),
+        ),
+      );
+
+    await tx
+      .update(declarationTable)
+      .set({ ...declarationDetails })
+      .where(eq(declarationTable.userId, userId));
+
+    await tx
+      .update(editPermissionTable)
+      .set({ canEdit: false })
+      .where(eq(editPermissionTable.userId, userId));
+  });
+
+  return "edit";
+}
+
 export async function requestEdit(userId: string) {
   if (!userId) throw new Error("No user id found!");
   let permissions: EditPermissionType[];

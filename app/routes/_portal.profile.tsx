@@ -16,6 +16,7 @@ import {
   getAllProfileDetails,
   insertProfileDetails,
   requestEdit,
+  updateProfileDetails,
   uploadImage,
   type CurrentAddressDetails,
   type EducationDetails,
@@ -138,128 +139,158 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!INTENTS.includes(String(intent))) {
       return json({ error: "Invalid request method!" });
     }
+    const dataObject = createObjectFromFormData(
+      data,
+    ) as unknown as ProfileFormSubmitType;
+    console.log(dataObject);
+
+    if (intent === "request") {
+      // procedure to call edit function
+      const response = await requestEdit(user.userId ?? "");
+      if (!response)
+        return json({
+          error: "Request already processed. Please continue editing.",
+        } as SubmitResponseType);
+      if (response.length === 1 && response[0].hasRequested)
+        return json({ message: "Request has been sent" } as SubmitResponseType);
+      else
+        return json({
+          error: "Request was sent, but we were unable to process it",
+        } as SubmitResponseType);
+    }
+
+    const parentSignatureFile = data.get("parentSignature");
+    const candidateSignatureFile = data.get("candidateSignature");
+
+    /** Huge ass checks to ensure that it either File or string and they are valid */
+    if (
+      !parentSignatureFile ||
+      !candidateSignatureFile ||
+      (parentSignatureFile instanceof Blob &&
+        (parentSignatureFile.size === 0 ||
+          !parentSignatureFile.type.includes("image"))) ||
+      (candidateSignatureFile instanceof Blob &&
+        (candidateSignatureFile.size === 0 ||
+          !candidateSignatureFile.type.includes("image"))) ||
+      (parentSignatureFile instanceof String &&
+        !parentSignatureFile.startsWith("https://")) ||
+      (candidateSignatureFile instanceof String &&
+        !candidateSignatureFile.startsWith("https://"))
+    ) {
+      return json({ error: "Invalid images!" } as SubmitResponseType, 400);
+    }
+
+    const validation = validateProfileData(dataObject);
+    if (Object.keys(validation).length > 0)
+      return json({ error: validation } as SubmitResponseType, 400);
+
+    const personalDetails: PersonalDetails = {
+      bloodGroup: dataObject.bloodGroup,
+      community: dataObject.community,
+      dateOfBirth: new Date(dataObject.dob).toDateString(),
+      hostelRequired: dataObject.hostelRequired === "yes",
+      motherTongue: dataObject.motherTongue,
+      name: dataObject.name,
+      nationality: dataObject.nationality,
+      religion: dataObject.religion,
+    };
+    const educationDetails: EducationDetails = {
+      appliedDegree: dataObject.appliedDegree,
+      lastQualifying: dataObject.lastQualifying,
+      schoolBranch: dataObject.schoolBranch,
+      schoolName: dataObject.schoolName,
+      boardName: dataObject.boardName,
+      langMedium: dataObject.langMedium,
+      regNo: dataObject.regNo,
+      gradePercentage: dataObject.gradePercentage,
+      dateOfPassing: dataObject.dateOfPassing,
+      schoolAddress: dataObject.schoolAddress,
+      schoolCity: dataObject.schoolCity,
+      schoolPincode: dataObject.schoolPincode,
+    };
+
+    const currentAddressDetails: CurrentAddressDetails = {
+      type: "current",
+      emailId: dataObject.currentEmail,
+      addressLine1: dataObject.currentAddress,
+      addressLine2: dataObject.currentArea,
+      city: dataObject.currentCity,
+      pincode: dataObject.currentPincode,
+      state: parseInt(dataObject.currentState),
+      country: dataObject.currentCountry,
+      mobileNumber: dataObject.currentMobile,
+      phoneNo: dataObject.currentLandLine ?? null,
+    };
+
+    const permanentAddressDetails: PermanentAddressDetails = {
+      type: "permanent",
+      emailId: dataObject.permanentEmail,
+      addressLine1: dataObject.permanentAddress,
+      addressLine2: dataObject.permanentArea,
+      city: dataObject.permanentCity,
+      pincode: dataObject.permanentPincode,
+      state: parseInt(dataObject.permanentState),
+      country: dataObject.permanentCountry,
+      mobileNumber: dataObject.permanentMobile,
+      phoneNo: dataObject.permanentLandLine ?? null,
+    };
+
+    const familyDetails: FamilyDetails = {
+      noOfBrothers: parseInt(dataObject.noOfBrothers),
+      noOfSisters: parseInt(dataObject.noOfSisters),
+      siblingStudyingCount: parseInt(dataObject.siblingStudyingCount),
+      siblingStudyingDetails: dataObject.siblingStudyingDetails,
+    };
+
+    const motherDetails: MotherDetails = {
+      parentType: "mother",
+      parentAddress: dataObject.motherAddress,
+      parentAnnualIncome: dataObject.motherAnnualIncome,
+      parentCity: dataObject.motherCityName,
+      parentDesignation: dataObject.motherDesignation,
+      parentEmailId: dataObject.motherEmail,
+      parentEmpId: dataObject.motherEmpId,
+      parentMobileNo: dataObject.motherMobile,
+      parentName: dataObject.motherName,
+      parentOccupation: dataObject.motherOccupation,
+      parentOrganization: dataObject.motherOrganization,
+      parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
+      parentPincode: dataObject.motherPincode,
+      parentQualification: dataObject.motherQualification,
+      parentState: parseInt(dataObject.motherState),
+    };
+
+    const fatherDetails: FatherDetails = {
+      parentType: "father",
+      parentAddress: dataObject.fatherAddress,
+      parentAnnualIncome: dataObject.fatherAnnualIncome,
+      parentCity: dataObject.fatherCityName,
+      parentDesignation: dataObject.fatherDesignation,
+      parentEmailId: dataObject.fatherEmail,
+      parentEmpId: dataObject.fatherEmpId,
+      parentMobileNo: dataObject.fatherMobile,
+      parentName: dataObject.fatherName,
+      parentOccupation: dataObject.fatherOccupation,
+      parentOrganization: dataObject.fatherOrganization,
+      parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
+      parentPincode: dataObject.fatherPincode,
+      parentQualification: dataObject.fatherQualification,
+      parentState: parseInt(dataObject.fatherState),
+    };
 
     if (intent === "data") {
-      const dataObject = createObjectFromFormData(
-        data,
-      ) as unknown as ProfileFormSubmitType;
-      console.log(dataObject);
-
-      const parentSignatureFile = data.get("parentSignature");
-      const candidateSignatureFile = data.get("candidateSignature");
-
-      if (
-        !parentSignatureFile ||
-        !candidateSignatureFile ||
-        !(parentSignatureFile instanceof File) ||
-        !(candidateSignatureFile instanceof File)
-      ) {
-        return json({ error: "Invalid images!" } as SubmitResponseType, 400);
-      }
-      const validation = validateProfileData(dataObject);
-      if (Object.keys(validation).length > 0)
-        return json({ error: validation } as SubmitResponseType, 400);
-
-      const parentSignature = await uploadImage(parentSignatureFile);
-      const candidateSignature = await uploadImage(candidateSignatureFile);
+      const parentSignature =
+        parentSignatureFile instanceof Blob
+          ? await uploadImage(parentSignatureFile)
+          : parentSignatureFile;
+      const candidateSignature =
+        candidateSignatureFile instanceof Blob
+          ? await uploadImage(candidateSignatureFile)
+          : candidateSignatureFile;
 
       if (!parentSignature || !candidateSignature) {
         return json({ error: "Something went wrong in uploading images!" });
       }
-
-      const personalDetails: PersonalDetails = {
-        bloodGroup: dataObject.bloodGroup,
-        community: dataObject.community,
-        dateOfBirth: new Date(dataObject.dob).toDateString(),
-        hostelRequired: dataObject.hostelRequired === "yes",
-        motherTongue: dataObject.motherTongue,
-        name: dataObject.name,
-        nationality: dataObject.nationality,
-        religion: dataObject.religion,
-      };
-      const educationDetails: EducationDetails = {
-        appliedDegree: dataObject.appliedDegree,
-        lastQualifying: dataObject.lastQualifying,
-        schoolBranch: dataObject.schoolBranch,
-        schoolName: dataObject.schoolName,
-        boardName: dataObject.boardName,
-        langMedium: dataObject.langMedium,
-        regNo: dataObject.regNo,
-        gradePercentage: dataObject.gradePercentage,
-        dateOfPassing: dataObject.dateOfPassing,
-        schoolAddress: dataObject.schoolAddress,
-        schoolCity: dataObject.schoolCity,
-        schoolPincode: dataObject.schoolPincode,
-      };
-
-      const currentAddressDetails: CurrentAddressDetails = {
-        type: "current",
-        emailId: dataObject.currentEmail,
-        addressLine1: dataObject.currentAddress,
-        addressLine2: dataObject.currentArea,
-        city: dataObject.currentCity,
-        pincode: dataObject.currentPincode,
-        state: parseInt(dataObject.currentState),
-        country: dataObject.currentCountry,
-        mobileNumber: dataObject.currentMobile,
-        phoneNo: dataObject.currentLandLine ?? null,
-      };
-
-      const permanentAddressDetails: PermanentAddressDetails = {
-        type: "permanent",
-        emailId: dataObject.permanentEmail,
-        addressLine1: dataObject.permanentAddress,
-        addressLine2: dataObject.permanentArea,
-        city: dataObject.permanentCity,
-        pincode: dataObject.permanentPincode,
-        state: parseInt(dataObject.permanentState),
-        country: dataObject.permanentCountry,
-        mobileNumber: dataObject.permanentMobile,
-        phoneNo: dataObject.permanentLandLine ?? null,
-      };
-
-      const familyDetails: FamilyDetails = {
-        noOfBrothers: parseInt(dataObject.noOfBrothers),
-        noOfSisters: parseInt(dataObject.noOfSisters),
-        siblingStudyingCount: parseInt(dataObject.siblingStudyingCount),
-        siblingStudyingDetails: dataObject.siblingStudyingDetails,
-      };
-
-      const motherDetails: MotherDetails = {
-        parentType: "mother",
-        parentAddress: dataObject.motherAddress,
-        parentAnnualIncome: dataObject.motherAnnualIncome,
-        parentCity: dataObject.motherCityName,
-        parentDesignation: dataObject.motherDesignation,
-        parentEmailId: dataObject.motherEmail,
-        parentEmpId: dataObject.motherEmpId,
-        parentMobileNo: dataObject.motherMobile,
-        parentName: dataObject.motherName,
-        parentOccupation: dataObject.motherOccupation,
-        parentOrganization: dataObject.motherOrganization,
-        parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
-        parentPincode: dataObject.motherPincode,
-        parentQualification: dataObject.motherQualification,
-        parentState: parseInt(dataObject.motherState),
-      };
-
-      const fatherDetails: FatherDetails = {
-        parentType: "father",
-        parentAddress: dataObject.fatherAddress,
-        parentAnnualIncome: dataObject.fatherAnnualIncome,
-        parentCity: dataObject.fatherCityName,
-        parentDesignation: dataObject.fatherDesignation,
-        parentEmailId: dataObject.fatherEmail,
-        parentEmpId: dataObject.fatherEmpId,
-        parentMobileNo: dataObject.fatherMobile,
-        parentName: dataObject.fatherName,
-        parentOccupation: dataObject.fatherOccupation,
-        parentOrganization: dataObject.fatherOrganization,
-        parentPhoneNo: null, // --> I am not receiving data from frontend cuz no one really uses landline anyway, so
-        parentPincode: dataObject.fatherPincode,
-        parentQualification: dataObject.fatherQualification,
-        parentState: parseInt(dataObject.fatherState),
-      };
 
       const declarationDetails: DeclarationDetails = {
         candidateSignature: candidateSignature ?? "",
@@ -285,20 +316,48 @@ export async function action({ request }: ActionFunctionArgs) {
           error: "Something went wrong with saving your data",
         }) as SubmitResponseType;
 
+      return json({
+        message: "Profile details have been saved successfully!",
+      }) as SubmitResponseType;
+    } else if (intent === "edit") {
+      const parentSignature =
+        parentSignatureFile instanceof Blob
+          ? await uploadImage(parentSignatureFile)
+          : parentSignatureFile;
+      const candidateSignature =
+        candidateSignatureFile instanceof Blob
+          ? await uploadImage(candidateSignatureFile)
+          : candidateSignatureFile;
+
+      if (!parentSignature || !candidateSignature) {
+        return json({ error: "Something went wrong in uploading images!" });
+      }
+
+      const declarationDetails: DeclarationDetails = {
+        candidateSignature: candidateSignature ?? "",
+        parentSignature: parentSignature ?? "",
+        place: dataObject.place,
+        date: new Date(),
+      };
+
+      const editProfileDetailsRequest = await updateProfileDetails(
+        user.id as string,
+        personalDetails,
+        educationDetails,
+        currentAddressDetails,
+        permanentAddressDetails,
+        familyDetails,
+        motherDetails,
+        fatherDetails,
+        declarationDetails,
+      );
+
+      if (editProfileDetailsRequest !== "edit")
+        return json({
+          error: "Something went wrong with saving your data",
+        }) as SubmitResponseType;
+
       return json({ message: "Okay!" }) as SubmitResponseType;
-    } else if (intent === "request") {
-      // procedure to call edit function
-      const response = await requestEdit(user.userId ?? "");
-      if (!response)
-        return json({
-          error: "Request already processed. Please continue editing.",
-        } as SubmitResponseType);
-      if (response.length === 1 && response[0].hasRequested)
-        return json({ message: "Request has been sent" } as SubmitResponseType);
-      else
-        return json({
-          error: "Request was sent, but we were unable to process it",
-        } as SubmitResponseType);
     }
   } catch (error) {
     console.log("🚀 ~ action ~ error:", error);
@@ -407,8 +466,16 @@ function Page() {
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const image = e.currentTarget.files?.[0];
+    console.log("🚀 ~ handleImageUpload ~ image:", image);
     const fieldName = e.currentTarget.name;
-    if (!image || !fieldName) return;
+    if (!image || !fieldName) {
+      if (profileDetails && profileDetails.parentSignature) {
+        setParentSignature(profileDetails.parentSignature);
+        setCandidateSignature(profileDetails.candidateSignature);
+        return;
+      }
+      return;
+    }
 
     const imgBlob = new Blob([await image.arrayBuffer()], { type: image.type });
     if (fieldName === "parentSignature") setParentSignature(imgBlob);
@@ -1696,6 +1763,8 @@ function Page() {
           <label
             htmlFor="parentSignature"
             className={`flex cursor-pointer flex-col gap-3 text-sm font-normal ${profileDetails && !profileDetails.canEdit && "disabled"}`}
+            onClick={() => setParentSignature(() => new Blob([]))}
+            aria-hidden={true}
           >
             Signature of the Parent
             <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 placeholder:text-sm">
@@ -1719,20 +1788,29 @@ function Page() {
               )}
             </div>
           </label>
-          <input
-            id="parentSignature"
-            className="hidden"
-            type="file"
-            accept="image/*"
-            name="parentSignature"
-            required
-            onChange={handleImageUpload}
-          />
+          {parentSignature instanceof Blob ? (
+            <input
+              id="parentSignature"
+              className="hidden"
+              type="file"
+              accept="image/*"
+              name="parentSignature"
+              onChange={handleImageUpload}
+            />
+          ) : (
+            <input
+              type="hidden"
+              name="parentSignature"
+              value={parentSignature}
+            />
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <label
             htmlFor="candidateSignature"
             className={`flex cursor-pointer flex-col gap-3 text-sm font-normal ${profileDetails && !profileDetails.canEdit && "disabled"}`}
+            onClick={() => setCandidateSignature(() => new Blob([]))}
+            aria-hidden={true}
           >
             Signature of the Candidate
             <div className="flex items-center justify-center gap-3 rounded-md border-[3px] border-dashed bg-white p-5 placeholder:text-sm">
@@ -1756,15 +1834,22 @@ function Page() {
               )}
             </div>
           </label>
-          <input
-            id="candidateSignature"
-            className="hidden"
-            type="file"
-            accept="image/*"
-            required
-            name="candidateSignature"
-            onChange={handleImageUpload}
-          />
+          {candidateSignature instanceof Blob ? (
+            <input
+              id="candidateSignature"
+              className="hidden"
+              type="file"
+              accept="image/*"
+              name="candidateSignature"
+              onInput={handleImageUpload}
+            />
+          ) : (
+            <input
+              type="hidden"
+              value={candidateSignature}
+              name="candidateSignature"
+            />
+          )}
         </div>
       </div>
 

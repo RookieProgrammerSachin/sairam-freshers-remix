@@ -111,8 +111,8 @@ export const DB_TO_FORM_MAP = {
   motherParentPincode: "motherPincode",
   motherParentPhoneNo: "motherPhoneNo",
   place: "place",
-  candidateSignature: "candidateSignature",
-  parentSignature: "parentSignature",
+  // candidateSignature: "candidateSignature",
+  // parentSignature: "parentSignature",
 };
 
 export type ProfileDetails = {
