@@ -1511,6 +1511,14 @@ function AdminUserDetails() {
             </div>
           </div>
 
+          <Button
+            variant="secondary"
+            label={"Download PDF"}
+            type="button"
+            className={`mb-6 w-fit px-3 transition-all`}
+            to={{ url: `/pdf/${profileDetails.userId}`, target: "_blank" }}
+          />
+
           {/* Buttons */}
           {profileDetails.hasRequested && (
             <fetcher.Form

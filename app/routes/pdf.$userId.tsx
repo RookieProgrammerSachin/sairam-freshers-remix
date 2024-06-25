@@ -814,6 +814,7 @@ export const loader: LoaderFunction = async ({
   request,
   params,
 }: LoaderFunctionArgs) => {
+  // TODO: implement try catch for cookie requirement and catch to send valid response
   const profileDetails = await getAllProfileDetails(params.userId);
 
   const MyDocument = generatePDF(profileDetails);
@@ -838,7 +839,7 @@ export const loader: LoaderFunction = async ({
   // a PDF
   const headers = new Headers({
     "Content-Type": "application/pdf",
-    "Content-Disposition": 'attachment; filename="Bruh.pdf"',
+    "Content-Disposition": `attachment; filename="${profileDetails && profileDetails.name} - Profile Details.pdf"`,
   });
   return new Response(body, { status: 200, headers });
 };
