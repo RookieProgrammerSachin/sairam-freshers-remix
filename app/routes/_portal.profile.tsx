@@ -1855,32 +1855,57 @@ function Page() {
 
       <div className="flex w-full justify-end gap-3">
         {profileDetails && !profileDetails.canEdit && (
-          <Button
-            disabled={
-              (isSubmitting && fetcher.formData?.get("intent") === "request") ||
-              profileDetails.hasRequested
-            }
-            disabledComponent={
-              profileDetails.hasRequested ? (
-                <></>
-              ) : (
-                <Spinner className="border-blue-500" />
-              )
-            }
-            variant="secondary"
-            label={
-              profileDetails.hasRequested
-                ? "Edit request being processed"
-                : "Edit request"
-            }
-            type="button"
-            className={`mb-6 w-fit px-3 transition-all`}
-            onClick={() => {
-              const requestForm = new FormData();
-              requestForm.append("intent", "request");
-              fetcher.submit(requestForm, { navigate: false, method: "POST" });
-            }}
-          />
+          <>
+            <Button
+              disabled={
+                (isSubmitting &&
+                  fetcher.formData?.get("intent") === "request") ||
+                profileDetails.hasRequested
+              }
+              disabledComponent={
+                profileDetails.hasRequested ? (
+                  <></>
+                ) : (
+                  <Spinner className="border-blue-500" />
+                )
+              }
+              variant="secondary"
+              label={"Download PDF"}
+              type="button"
+              className={`mb-6 w-fit px-3 transition-all`}
+              to={{ url: `/pdf/${profileDetails.userId}`, target: "_blank" }}
+            />
+            <Button
+              disabled={
+                (isSubmitting &&
+                  fetcher.formData?.get("intent") === "request") ||
+                profileDetails.hasRequested
+              }
+              disabledComponent={
+                profileDetails.hasRequested ? (
+                  <></>
+                ) : (
+                  <Spinner className="border-blue-500" />
+                )
+              }
+              variant="secondary"
+              label={
+                profileDetails.hasRequested
+                  ? "Edit request being processed"
+                  : "Edit request"
+              }
+              type="button"
+              className={`mb-6 w-fit px-3 transition-all`}
+              onClick={() => {
+                const requestForm = new FormData();
+                requestForm.append("intent", "request");
+                fetcher.submit(requestForm, {
+                  navigate: false,
+                  method: "POST",
+                });
+              }}
+            />
+          </>
         )}
         <Button
           name="intent"

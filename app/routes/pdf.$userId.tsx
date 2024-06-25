@@ -1,3 +1,5 @@
+import { getAllProfileDetails } from "@/db/queries";
+import { requireAdminCookie, requireAuthCookie } from "@/utils/auth";
 import {
   Page,
   Text,
@@ -8,111 +10,11 @@ import {
   Image,
   Link,
 } from "@react-pdf/renderer";
-import type { LoaderFunctionArgs, LoaderFunction } from "@remix-run/node";
-
-const profileDetails = {
-  id: 2,
-  applicationNo: "20230151385",
-  password: "281bac87054b164c5f9e596edc570f2303d2ad96f761a6bd4e201407492b9ce2",
-  name: "SRIHARI RJ",
-  emailId: "sriharijayesh25@gmail.com",
-  mobile: "9498022215",
-  role: "ROLE_STUDENT",
-  college: "SRI SAIRAM INSTITUTE OF TECHNOLOGY",
-  department: "Information Technology",
-  createdAt: "2024-06-24T04:22:03.467Z",
-  updatedAt: "2024-06-25T03:05:44.218Z",
-  userId: "2cdfb2cd-2294-4465-b2b0-9e9047ab8f90",
-  appliedDegree: "B.Tech",
-  lastQualifying: "Higher Secondary",
-  schoolBranch: "Hasthinapuram",
-  schoolName: "Vivekananda",
-  boardName: "CBSE",
-  langMedium: "English",
-  regNo: "923023493",
-  gradePercentage: "93.33%",
-  dateOfPassing: "2019-05-07",
-  schoolAddress: "Vivekanda School, Kumarankundram",
-  schoolCity: "Chennai",
-  schoolPincode: "600064",
-  noOfBrothers: 1,
-  noOfSisters: 1,
-  siblingStudyingCount: 0,
-  siblingStudyingDetails: "-nil-",
-  dateOfBirth: "2024-06-20",
-  motherTongue: "Tamil",
-  bloodGroup: "O+",
-  nationality: "Indian",
-  religion: "Hindu",
-  community: "BC",
-  hostelRequired: false,
-  place: "Chennai",
-  date: "2024-06-25T03:05:43.266Z",
-  parentSignature:
-    "https://firebasestorage.googleapis.com/v0/b/sairam-freshers.appspot.com/o/signatures%2Fneck.jpg_1ByCIYoGFfXCh_Mg?alt=media&token=c1d6968e-a8fc-46b6-a83c-41d1dade2ba0",
-  candidateSignature:
-    "https://firebasestorage.googleapis.com/v0/b/sairam-freshers.appspot.com/o/signatures%2Fhands.png_tRw2a9BzyGY2R0Ke?alt=media&token=5d9c2d9c-d6f6-45f1-9f75-aa7e559e066a",
-  canEdit: false,
-  hasRequested: false,
-  currentId: 3,
-  currentUserId: "2cdfb2cd-2294-4465-b2b0-9e9047ab8f90",
-  currentType: "current",
-  currentAddressLine1: "No.8, 10th Street,",
-  currentAddressLine2: "Vinobaji Nagar",
-  currentCity: "Chennai",
-  currentPincode: "600064",
-  currentState: 25,
-  currentCountry: "India",
-  currentPhoneNo: " ",
-  currentMobileNumber: "9362667920",
-  currentEmailId: "sreesachin11226@gmail.com",
-  permanentId: 4,
-  permanentUserId: "2cdfb2cd-2294-4465-b2b0-9e9047ab8f90",
-  permanentType: "permanent",
-  permanentAddressLine1: "No.8, 10th Street,",
-  permanentAddressLine2: "Vinobaji Nagar",
-  permanentCity: "Chennai",
-  permanentPincode: "600064",
-  permanentState: 25,
-  permanentCountry: "India",
-  permanentPhoneNo: " ",
-  permanentMobileNumber: "9362667920",
-  permanentEmailId: "sreesachin11226@gmail.com",
-  fatherId: 2,
-  fatherUserId: "2cdfb2cd-2294-4465-b2b0-9e9047ab8f90",
-  fatherParentType: "father",
-  fatherParentName: "Ethiraj",
-  fatherParentQualification: "B.Sc. Botany",
-  fatherParentOccupation: "Manager",
-  fatherParentOrganization: "Shield",
-  fatherParentDesignation: "Manager",
-  fatherParentEmpId: " ",
-  fatherParentMobileNo: "9361667920",
-  fatherParentEmailId: "sreesachin11226@gmail.com",
-  fatherParentAnnualIncome: "800000",
-  fatherParentAddress: "No.8, 10th Street,",
-  fatherParentCity: "Chennai",
-  fatherParentState: 25,
-  fatherParentPincode: "600064",
-  fatherParentPhoneNo: null,
-  motherId: 1,
-  motherUserId: "2cdfb2cd-2294-4465-b2b0-9e9047ab8f90",
-  motherParentType: "mother",
-  motherParentName: "Thilagavathy",
-  motherParentQualification: "12th",
-  motherParentOccupation: "Doctor",
-  motherParentOrganization: "Home",
-  motherParentDesignation: "Home maker",
-  motherParentEmpId: " ",
-  motherParentMobileNo: "9150940153",
-  motherParentEmailId: "thilakebi96@gmail.com",
-  motherParentAnnualIncome: "750000",
-  motherParentAddress: "No.8, 10th Street,",
-  motherParentCity: "Chennai",
-  motherParentState: 25,
-  motherParentPincode: "600064",
-  motherParentPhoneNo: null,
-};
+import {
+  type LoaderFunctionArgs,
+  type LoaderFunction,
+  json,
+} from "@remix-run/node";
 
 const APP_NAME = "https://sairam-freshers-remix.vercel.app/";
 
@@ -189,7 +91,8 @@ const INDIAN_STATES = [
 ];
 
 // Create Document Component
-function generatePDF(data: typeof profileDetails) {
+function generatePDF(data: Awaited<ReturnType<typeof getAllProfileDetails>>) {
+  if (!data) return null;
   const MyDocument = () => (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -280,7 +183,7 @@ function generatePDF(data: typeof profileDetails) {
             <Text style={styles.textLabel}>Hostel Required?</Text>
             <View style={styles.input}>
               <Text style={styles.textValue}>
-                {data.hostelRequired === true ? "Yes" : "No"}
+                {data.hostelRequired ? "Yes" : "No"}
               </Text>
             </View>
           </View>
@@ -871,9 +774,12 @@ function generatePDF(data: typeof profileDetails) {
             <Text style={styles.textLabel}>Date</Text>
             <View style={styles.input}>
               <Text style={styles.textValue}>
-                {new Date(data.date).toLocaleDateString("en-IN", {
-                  timeZone: "Asia/Kolkata",
-                })}
+                {
+                  // @ts-expect-error date illa
+                  new Date(data.date).toLocaleDateString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                  })
+                }
               </Text>
             </View>
           </View>
@@ -908,12 +814,11 @@ export const loader: LoaderFunction = async ({
   request,
   params,
 }: LoaderFunctionArgs) => {
-  // you can get any data you need to generate the PDF inside the loader
-  // however you want, e.g. fetch an API or query a DB or read the FS
-  //   let data = await getDataForThePDFSomehow({ request, params });
+  const profileDetails = await getAllProfileDetails(params.userId);
 
-  // render the PDF as a stream so you do it async
   const MyDocument = generatePDF(profileDetails);
+
+  if (!MyDocument) return json({ error: "No details found!" }, { status: 404 });
 
   const stream = await renderToStream(<MyDocument />);
 
@@ -931,6 +836,9 @@ export const loader: LoaderFunction = async ({
 
   // finally create the Response with the correct Content-Type header for
   // a PDF
-  const headers = new Headers({ "Content-Type": "application/pdf" });
+  const headers = new Headers({
+    "Content-Type": "application/pdf",
+    "Content-Disposition": 'attachment; filename="Bruh.pdf"',
+  });
   return new Response(body, { status: 200, headers });
 };

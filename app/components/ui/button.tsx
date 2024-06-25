@@ -11,7 +11,10 @@ type ButtonProps = {
   label: string | ReactNode;
   name?: string;
   value?: string;
-  to?: string | undefined;
+  to?:
+    | string
+    | undefined
+    | { url: string; target: "_blank" | "_parent" | "_self" | "_top" };
   variant?: "primary" | "secondary";
   type?: "button" | "submit";
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -31,7 +34,8 @@ function Button({
 }: ButtonProps) {
   return to ? (
     <Link
-      to={to}
+      to={typeof to === "string" ? to : to.url}
+      target={typeof to !== "string" ? to.target : "_self"}
       className={cn(
         `${
           disabled
